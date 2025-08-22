@@ -35,7 +35,7 @@ export const Login = (props: Props) => {
   return (
     <div className="w-full bg-white-100 max-w-md px-8 py-10">
       <div className="flex flex-col items-center">
-        <Image src="/images/logo.svg" alt="Logo" width={250} height={160} />
+       {/* <Image src="/images/logo.svg" alt="Logo" width={250} height={160} /> */}
         <h2 className="text-xl font-semibold text-gray-900 mt-6">Iniciar sesión</h2>
         <p className="text-sm text-gray-500 mt-1 mb-6">
          Bienvenido de nuevo! Inicia sesión para continuar.

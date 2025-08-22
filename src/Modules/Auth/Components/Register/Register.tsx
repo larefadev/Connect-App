@@ -39,7 +39,7 @@ export const Register = (props: Props) => {
   return (
     <div className="w-full max-w-md px-8 py-10">
       <div className="flex flex-col items-center">
-        <Image src="/images/logo.png" alt="Logo" width={250} height={160} />
+       {/* <Image src="/images/logo.png" alt="Logo" width={250} height={160} /> */}
         <h2 className="text-xl font-semibold text-gray-900 mt-6">Sign up</h2>
         <p className="text-sm text-gray-500 mt-1 mb-6">
           Sign up now to create your new account.
