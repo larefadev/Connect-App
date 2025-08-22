@@ -32,17 +32,17 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
     ];
 
     const getBackgroundImage = () => {
-        if (storeProfilePublic?.banner_image) {
+        if (storeProfilePublic?.banner_url) {
             return `bg-cover bg-center bg-no-repeat py-16`;
         }
         return "bg-gradient-to-r from-gray-900 to-gray-700 text-white py-16";
     };
 
     const getBackgroundStyle = () => {
-        console.log("getBackgroundStyle: storeProfilePublic.banner_image:", storeProfilePublic?.banner_image);
-        if (storeProfilePublic?.banner_image) {
+        console.log("getBackgroundStyle: storeProfilePublic.banner_url:", storeProfilePublic?.banner_url);
+        if (storeProfilePublic?.banner_url) {
             return {
-                backgroundImage: `url(${storeProfilePublic.banner_image})`,
+                backgroundImage: `url(${storeProfilePublic.banner_url})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat'
@@ -52,14 +52,14 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
     };
 
     const getTextColor = () => {
-        if (storeProfilePublic?.banner_image) {
+        if (storeProfilePublic?.banner_url) {
             return "text-white";
         }
         return "text-white";
     };
 
     const getOverlay = () => {
-        if (storeProfilePublic?.banner_image) {
+        if (storeProfilePublic?.banner_url) {
             return "bg-black bg-opacity-50"; 
         }
         return "";
@@ -185,8 +185,8 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
                         <div className="flex items-center space-x-4">
                             <div className="w-50 h-30 flex items-center justify-center">
                                {/* <Store className="w-6 h-6 text-white" /> */}
-                               {storeProfilePublic?.logo_image ? (
-                                   <Image src={storeProfilePublic.logo_image} alt="Logo" width={100} height={100} />
+                               {storeProfilePublic?.logo_url ? (
+                                   <Image src={storeProfilePublic.logo_url} alt="Logo" width={100} height={100} />
                                ) : (
                                    <Store className="w-6 h-6 text-white rounded-full bg-black" />
                                )}
@@ -199,11 +199,11 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
                         <div className="flex items-center space-x-4">
                             <div className="flex items-center space-x-2 text-gray-600">
                                 <Globe className="w-4 h-4" />
-                                <span className="text-sm">{storeProfilePublic?.storeUrl || `${storeName || "autoparts"}.larefa.com`}</span>
+                                <span className="text-sm">{storeProfilePublic?.name ? `${storeProfilePublic.name.toLowerCase().replace(/\s+/g, '')}.larefa.com` : `${storeName || "autoparts"}.larefa.com`}</span>
                             </div>
                             <div className="flex items-center space-x-2 text-gray-600">
                                 <Phone className="w-4 h-4" />
-                                <span className="text-sm">{storeProfilePublic?.phone || "1 888 235 9826"}</span>
+                                <span className="text-sm">{"1 888 235 9826"}</span>
                             </div>
                         </div>
                     </div>
@@ -219,7 +219,7 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
                     <h2 className={`text-4xl font-bold mb-4 ${getTextColor()} uppercase`}>
                         {storeProfilePublic?.name || "Auto Parts"}
                     </h2>
-                    <p className={`text-xl mb-8 ${storeProfilePublic?.banner_image ? 'text-white' : 'text-gray-300'}`}>
+                    <p className={`text-xl mb-8 ${storeProfilePublic?.banner_url ? 'text-white' : 'text-gray-300'}`}>
                         {storeProfilePublic?.description || "Find the best parts at competitive prices with fast delivery"}
                     </p>
                     <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg">
@@ -332,11 +332,11 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
                             <div className="space-y-2 text-sm text-gray-400">
                                 <div className="flex items-center space-x-2">
                                     <Globe className="w-4 h-4" />
-                                    <span>{storeProfilePublic?.storeUrl || `${storeName || "autoparts"}.larefa.com`}</span>
+                                    <span>{storeProfilePublic?.name ? `${storeProfilePublic.name.toLowerCase().replace(/\s+/g, '')}.larefa.com` : `${storeName || "autoparts"}.larefa.com`}</span>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Phone className="w-4 h-4" />
-                                    <span>{storeProfilePublic?.phone || "1 888 235 9826"}</span>
+                                    <span>{"1 888 235 9826"}</span>
                                 </div>
                             </div>
                         </div>

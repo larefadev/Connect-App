@@ -1,6 +1,15 @@
 import { Auth } from "@/types/auth";
 import { Address } from "@/types/address";
 
+// Definir interfaz para PersonType
+interface PersonType {
+    id: bigint;
+    name: string;
+    description?: string;
+    created_at?: Date;
+    updated_at?: Date;
+}
+
 export interface Person {
     id?: bigint;
     created_at?: Date;
@@ -13,6 +22,6 @@ export interface Person {
     // Relaciones opcionales
     Auth?: Auth;
     Address?: Address;
-    PersonType?: any; // Person_Catalog
+    PersonType?: PersonType; // Person_Catalog
 }
 

@@ -64,7 +64,7 @@ export const QuotationPage = () => {
     setItems(items.filter(item => item.id !== id));
   };
 
-  const updateItem = (id: number, field: string, value: any) => {
+  const updateItem = (id: number, field: string, value: string | number) => {
     setItems(items.map(item => 
       item.id === id ? { ...item, [field]: value } : item
     ));

@@ -31,8 +31,9 @@ export const useLogin = () => {
                 })
             }
             return true
-        } catch (e: any) {
-            setError(e?.message ?? "Error inesperado al iniciar sesión")
+        } catch (e: unknown) {
+            const errorMessage = e instanceof Error ? e.message : "Error inesperado al iniciar sesión"
+            setError(errorMessage)
             return false
         } finally {
             setIsLoading(false)

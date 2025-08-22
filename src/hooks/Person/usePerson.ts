@@ -1,7 +1,7 @@
 import supabase from "@/lib/Supabase";
 import { useAuthStore } from "@/stores/authStore";
 import { Person } from "@/types/person";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 export const usePerson = () => {
     const [person, setPerson] = useState<Person | null>(null);
@@ -9,7 +9,7 @@ export const usePerson = () => {
     const [error, setError] = useState<string | null>(null);
     const user = useAuthStore((s) => s.user);
     
-    const getPerson = async () => {
+    const getPerson = useCallback(async () => {
         if (!user?.id) return;
         
         setLoading(true);
@@ -35,13 +35,13 @@ export const usePerson = () => {
         } finally {
             setLoading(false);
         }
-    }
+    }, [user?.id]);
 
     useEffect(() => {
         if (user?.id) {
             getPerson();
         }
-    }, [user?.id]);
+    }, [user?.id, getPerson]);
     
     return {
         person,

@@ -52,7 +52,7 @@ export const userRegisterStore = create<RegistrationState>()(
                 storeData: { ...state.storeData, ...data }
             })),
 
-            handleSignIn: async (email, password) => {
+            handleSignIn: async (email, _password) => {
                 set({ isLoading: true, error: null })
                 try {
                     useAuthStore.getState().login({
@@ -79,7 +79,7 @@ export const userRegisterStore = create<RegistrationState>()(
                 set({ isLoading: true, error: null })
                 try {
 
-                    const { error , data } = await supabase.auth.signUp({
+                    const { error: signUpError, data } = await supabase.auth.signUp({
                         email: userData.email!,
                         password: userData.password!
                     })
@@ -97,8 +97,8 @@ export const userRegisterStore = create<RegistrationState>()(
                         })
                     }
 
-                    if (error) {
-                        throw new Error(error.message)
+                    if (signUpError) {
+                        throw new Error(signUpError.message)
                     }
 
                    if(data.user){
@@ -127,14 +127,14 @@ export const userRegisterStore = create<RegistrationState>()(
                         throw new Error('No se encontró el email para verificar')
                     }
 
-                    const { data, error } = await supabase.auth.verifyOtp({
+                    const { data, error: verifyError } = await supabase.auth.verifyOtp({
                         email: verificationData.email,
                         token: code,
                         type: 'email'
                     })
 
-                    if (error) {
-                        throw new Error(error.message)
+                    if (verifyError) {
+                        throw new Error(verifyError.message)
                     }
 
                     if (data.user) {
@@ -186,7 +186,7 @@ export const userRegisterStore = create<RegistrationState>()(
                         currentStep: 'store-setup',
                         isLoading: false
                     }))
-                } catch (error) {
+                } catch (_error) {
                     set({
                         error: 'Error al seleccionar plan',
                         isLoading: false
@@ -211,7 +211,7 @@ export const userRegisterStore = create<RegistrationState>()(
                         email: userData.email || '',
                         username: userData.username || ''
                     })
-                } catch (error) {
+                } catch (_error) {
                     set({
                         error: 'Error al configurar la tienda',
                         isLoading: false

@@ -48,9 +48,10 @@ const SetUp = () => {
 
             console.log(`${type} uploaded successfully:`, publicUrlData.publicUrl)
             return publicUrlData.publicUrl
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(`Error uploading ${type}:`, error)
-            alert(`Error al subir ${type}: ${error.message}`)
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            alert(`Error al subir ${type}: ${errorMessage}`)
         } finally {
             setUploadingFiles(prev => ({ ...prev, [type]: false }))
         }
@@ -104,9 +105,10 @@ const SetUp = () => {
             if (error) throw error
 
             console.log('Store setup completed:', data)
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error setting up store:', error)
-            alert('Error al configurar la tienda: ' + error.message)
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            alert('Error al configurar la tienda: ' + errorMessage)
         }
     }
 
@@ -186,7 +188,7 @@ const SetUp = () => {
     }: {
         label: string
         isActive: boolean
-        onClick: (e: any) => void
+        onClick: (e: React.MouseEvent<HTMLButtonElement>) => void
     }) => (
         <button
             type="button"

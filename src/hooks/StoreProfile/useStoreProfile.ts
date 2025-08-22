@@ -1,16 +1,36 @@
 import supabase from "@/lib/Supabase";
 import { usePerson } from "../Person/usePerson";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+
+// Definir interfaces para los tipos
+interface Store {
+    id: string;
+    lord_id: string;
+    profile_id: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+interface StoreProfile {
+    id: string;
+    name: string;
+    description?: string;
+    logo_url?: string;
+    banner_url?: string;
+    theme?: string;
+    created_at?: string;
+    updated_at?: string;
+}
 
 export const useStoreProfile = () => {
     const { person, loading: personLoading, error: personError } = usePerson();
-    const [storeProfile, setStoreProfile] = useState<any>(null);
-    const [store, setStore] = useState<any>(null);
+    const [storeProfile, setStoreProfile] = useState<StoreProfile | null>(null);
+    const [store, setStore] = useState<Store | null>(null);
     const [loading, setLoading] = useState(false);
-    const [storeProfilePublic, setStoreProfilePublic] = useState<any>(null);
+    const [storeProfilePublic, setStoreProfilePublic] = useState<StoreProfile | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const getStoreByPerson = async () => {
+    const getStoreByPerson = useCallback(async () => {
         if (!person?.id) return null;
         
         try {
@@ -32,7 +52,7 @@ export const useStoreProfile = () => {
             console.error('Error en getStoreByPerson:', err);
             return null;
         }
-    };
+    }, [person?.id]);
 
     const getStoreProfileByStoreName = async (storeName: string) => {
         if (!storeName) {
@@ -71,7 +91,7 @@ export const useStoreProfile = () => {
         }
     };
 
-    const getStoreProfile = async () => {
+    const getStoreProfile = useCallback(async () => {
         if (!person?.id) return;
         
         setLoading(true);
@@ -102,14 +122,14 @@ export const useStoreProfile = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [person?.id, getStoreByPerson]);
 
     // Solo ejecutar cuando person esté disponible
     useEffect(() => {
         if (person?.id && !personLoading) {
             getStoreProfile();
         }
-    }, [person?.id, personLoading]);
+    }, [person?.id, personLoading, getStoreProfile]);
 
 
 

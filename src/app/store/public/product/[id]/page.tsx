@@ -7,9 +7,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
+export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const product = {
-        id: params.id,
+        id: "loading", // Placeholder hasta que params se resuelva
         name: "Brake Pads",
         sku: "BRK-45872",
         buyingPrice: 25.00,

@@ -83,7 +83,26 @@ export const ConfigProfile = () => {
                     </button>
                     <button className="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700"
                             onClick={async ()=>{
-                                await handleStoreSetup(storeData)
+                                // Validar que storeData tenga todos los campos requeridos
+                                if (storeData.storeName && storeData.storeUrl && storeData.phone && 
+                                    storeData.businessEmail && storeData.storeType && storeData.physicalAddress && 
+                                    storeData.rfcType && storeData.rfcNumber) {
+                                    await handleStoreSetup(storeData as {
+                                        storeName: string;
+                                        storeUrl: string;
+                                        phone: string;
+                                        businessEmail: string;
+                                        whatsappUrl: string;
+                                        storeType: 'physical' | 'local';
+                                        physicalAddress: string;
+                                        rfcType: 'refa' | 'own';
+                                        rfcNumber: string;
+                                        logo?: File | string;
+                                        banner?: File | string;
+                                    })
+                                } else {
+                                    alert('Por favor completa todos los campos requeridos antes de finalizar la configuración')
+                                }
                             }}
                     >
                         Finish Setup

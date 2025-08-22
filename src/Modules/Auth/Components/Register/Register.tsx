@@ -16,7 +16,7 @@ export const Register = (props: Props) => {
     confirmPassword: ''
   })
 
-  const handleSubmit = async (e: any ) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     if (formData.password !== formData.confirmPassword) {
@@ -46,7 +46,7 @@ export const Register = (props: Props) => {
         </p>
       </div>
       
-      <form className="space-y-4" >
+      <form className="space-y-4" onSubmit={handleSubmit}>
         <input
           type="text"
           placeholder="Username"
@@ -82,10 +82,6 @@ export const Register = (props: Props) => {
         <button
           type="submit"
           className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-lg mt-4"
-          onClick={async (e) => {
-            e.preventDefault();
-            await handleSubmit(e)
-          }}
         >
           Registrarme
         </button>

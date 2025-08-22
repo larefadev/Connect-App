@@ -35,7 +35,7 @@ export interface Category {
 }
 
 export interface StoreStats {
-    icon: any;
+    icon: React.ComponentType<{ className?: string }> | string;
     label: string;
     value: string;
     color: string;

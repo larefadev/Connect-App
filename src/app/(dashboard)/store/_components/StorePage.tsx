@@ -135,20 +135,20 @@ export const StorePage = () => {
                                 </div>
                                 <div>
                                     <div className="flex items-center space-x-3 mb-2">
-                                        <h2 className="text-3xl font-bold">{storeProfile?.storeName || "Auto Parts"}</h2>
+                                        <h2 className="text-3xl font-bold">{storeProfile?.name || "Auto Parts"}</h2>
                                         <Badge className="bg-red-500 text-white">free</Badge>
                                     </div>
                                     <div className="space-y-2">
                                         <div className="flex items-center space-x-2 text-gray-600">
                                             <Globe className="w-4 h-4" />
-                                            <span>{storeProfile?.storeUrl || "autoparts.larefa.com"}</span>
+                                            <span>{storeProfile?.name ? `${storeProfile.name.toLowerCase().replace(/\s+/g, '')}.larefa.com` : "autoparts.larefa.com"}</span>
                                             <Button variant="ghost" size="sm" className="p-1 h-auto">
                                                 <Copy className="w-3 h-3" />
                                             </Button>
                                         </div>
                                         <div className="flex items-center space-x-2 text-gray-600">
                                             <Phone className="w-4 h-4" />
-                                            <span>{storeProfile?.phone || "1 888 235 9826"}</span>
+                                            <span>{"1 888 235 9826"}</span>
                                             <Button variant="ghost" size="sm" className="p-1 h-auto">
                                                 <Copy className="w-3 h-3" />
                                             </Button>
