@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { useRegistrationFlow } from "@/hooks/Auth/useRegistrationFlow";
 import supabase from "@/lib/Supabase";
+import { StoreData } from "@/types/auth";
 
 const SetUp = () => {
     const [storeType, setStoreType] = useState("Local")
@@ -98,106 +99,79 @@ const SetUp = () => {
                 whatsapp_url: formData.whatsappUrl,
                 type_store: storeType === "Local" ? 1 : 2,
                 address: addressData?.[0]?.id,
-                rfc_type: formData.rfcType,
-                rfc_number: formData.rfcNumber
-            })
+                rfc: formData.rfcNumber
+            }).select()
 
             if (error) throw error
 
-            console.log('Store setup completed:', data)
+            console.log('Store setup completed successfully:', data)
+            alert('Configuración de la tienda completada exitosamente!')
+            
+            // Aquí podrías redirigir al usuario o actualizar el estado
+            if (handleStoreSetup) {
+                await handleStoreSetup(formData as StoreData)
+            }
         } catch (error: unknown) {
             console.error('Error setting up store:', error)
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-            alert('Error al configurar la tienda: ' + errorMessage)
+            alert(`Error al configurar la tienda: ${errorMessage}`)
         }
     }
 
-    const UploadArea = ({ type }: { type: "logo" | "banner" }) => {
-        const isUploading = uploadingFiles[type]
-        const hasFile = formData[type]
-
-        return (
-            <div className="relative">
-                <input
-                    type="file"
-                    id={`upload-${type}`}
-                    className="hidden"
-                    accept="image/jpeg,image/jpg,image/png,image/webp"
-                    onChange={(e) => handleFileSelect(e, type)}
-                    disabled={isUploading}
-                />
-                <label
-                    htmlFor={`upload-${type}`}
-                    className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 text-center min-h-[120px] cursor-pointer transition-colors ${
-                        isUploading
-                            ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
-                            : hasFile
-                                ? 'border-green-400 bg-green-50 hover:border-green-500'
-                                : 'border-gray-300 hover:border-red-400'
-                    }`}
-                >
-                    {isUploading ? (
-                        <div className="flex flex-col items-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500 mb-2"></div>
-                            <p className="text-sm text-gray-500">Subiendo {type}...</p>
-                        </div>
-                    ) : hasFile ? (
-                        <div className="flex flex-col items-center">
-                            <div className="text-green-500 mb-2">
-                                <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            <p className="text-sm text-green-600 font-medium">
-                                {type.charAt(0).toUpperCase() + type.slice(1)} subido exitosamente
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">Click para cambiar</p>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col items-center">
-                            <div className="text-gray-400 mb-2">
-                                <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                </svg>
-                            </div>
-                            <p className="text-sm text-gray-500">
-                                Drop your {type} here, or select<br />
-                                <span className="text-red-500 font-medium cursor-pointer">Click to browse</span>
-                            </p>
-                        </div>
-                    )}
-                </label>
-
-                {hasFile && !isUploading && (
-                    <div className="mt-2">
-                        <img
-                            src={formData[type]}
-                            alt={`${type} preview`}
-                            className="w-full h-20 object-cover rounded border"
-                        />
+    const UploadArea = ({ type }: { type: 'logo' | 'banner' }) => (
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-red-400 transition-colors">
+            <input
+                type="file"
+                id={`${type}-upload`}
+                accept="image/*"
+                onChange={(e) => handleFileSelect(e, type)}
+                className="hidden"
+            />
+            <label htmlFor={`${type}-upload`} className="cursor-pointer">
+                <div className="space-y-2">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                        {formData[type] ? (
+                            <img src={formData[type]} alt={type} className="w-12 h-12 rounded-full object-cover" />
+                        ) : (
+                            <span className="text-2xl">📁</span>
+                        )}
                     </div>
-                )}
-            </div>
-        )
-    }
-    
-    const ToggleButton = ({
+                    <div>
+                        <p className="font-medium text-gray-700">
+                            {type === 'logo' ? 'Logo de la tienda' : 'Banner de la tienda'}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                            {uploadingFiles[type] ? 'Subiendo...' : 'Haz clic para subir'}
+                        </p>
+                    </div>
+                </div>
+            </label>
+        </div>
+    )
+
+    const RadioButton = ({
+        id,
+        name,
+        value,
         label,
-        isActive,
-        onClick
+        checked,
+        onChange
     }: {
+        id: string
+        name: string
+        value: string
         label: string
-        isActive: boolean
-        onClick: (e: React.MouseEvent<HTMLButtonElement>) => void
+        checked: boolean
+        onChange: (value: string) => void
     }) => (
         <button
             type="button"
-            className={`px-6 py-2 rounded-full border transition-colors ${
-                isActive
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
+            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                checked
+                    ? 'border-red-500 bg-red-50 text-red-700'
+                    : 'border-gray-300 text-gray-700 hover:border-gray-400'
             }`}
-            onClick={onClick}
+            onClick={() => onChange(value)}
         >
             {label}
         </button>
@@ -263,7 +237,7 @@ const SetUp = () => {
                     <input
                         placeholder="URL de WhatsApp"
                         value={formData.whatsappUrl}
-                        
+                        onChange={(e) => setFormData({...formData, whatsappUrl: e.target.value})}
                     />
                 </section>
 
@@ -285,7 +259,7 @@ const SetUp = () => {
                         <input
                             placeholder="Ej: Calle 123 #45-67, Bogotá, Colombia"
                             value={formData.physicalAddress}
-                            
+                            onChange={(e) => setFormData({...formData, physicalAddress: e.target.value})}
                         />
                     </FormSection>
                 </section>

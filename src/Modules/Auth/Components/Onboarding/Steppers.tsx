@@ -11,20 +11,20 @@ export const Steppers = () => {
     const dataStep = [
         {
             stepNumber: 1,
-            title: "Selling auto parts without stocking inventory",
-            description: "Access over 250,000 auto parts ready to sell from our platform, with new products added daily.",
+            title: "Vende repuestos automotrices sin mantener inventario",
+            description: "Accede a más de 250,000 repuestos automotrices listos para vender desde nuestra plataforma, con nuevos productos agregados diariamente.",
             image: "/images/Frame.png"
         },
         {
             stepNumber: 2,
-            title: "Start your online auto parts store instantly",
-            description: "Set up your digital store in minutes and start selling fast — no tech hassle, no waiting, no stress.",
+            title: "Inicia tu tienda de repuestos automotrices en línea instantáneamente",
+            description: "Configura tu tienda digital en minutos y comienza a vender rápido — sin complicaciones técnicas, sin esperas, sin estrés.",
             image:  "/images/Card.png"
         },
         {
             stepNumber: 3,
-            title: "We handle the delivery for every order",
-            description: "You make a sale, and we carefully pick and deliver it straight to your customer’s door, hassle-free.",
+            title: "Nos encargamos de la entrega de cada pedido",
+            description: "Tú haces una venta, y nosotros seleccionamos y entregamos cuidadosamente directamente a la puerta de tu cliente, sin complicaciones.",
             image: "/images/Frame(1).png"
         }
     ]

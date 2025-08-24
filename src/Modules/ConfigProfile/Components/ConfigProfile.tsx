@@ -6,10 +6,10 @@ export const ConfigProfile = () => {
     const {handleStoreSetup , storeData} = useRegistrationFlow();
 
     const items = [
-        { label: "Store Total Products", icon: "🧾", value: 0 },
-        { label: "Available Products", icon: "🏷️", value: 0 },
-        { label: "Unavailable Products", icon: "📦", value: 0 },
-        { label: "Total Product Sold", icon: "📈", value: 0 }
+        { label: "Total de Productos de la Tienda", icon: "🧾", value: 0 },
+        { label: "Productos Disponibles", icon: "🏷️", value: 0 },
+        { label: "Productos No Disponibles", icon: "📦", value: 0 },
+        { label: "Total de Productos Vendidos", icon: "📈", value: 0 }
     ]
 
     return (
@@ -34,8 +34,8 @@ export const ConfigProfile = () => {
                 <div className="pt-8 px-4 flex justify-between items-start">
                     <div>
                         <h2 className="text-xl font-semibold flex items-center gap-2">
-                            Auto Parts
-                            <span className="bg-red-100 text-red-600 text-xs font-medium px-2 py-0.5 rounded-full">Free</span>
+                            Repuestos Automotrices
+                            <span className="bg-red-100 text-red-600 text-xs font-medium px-2 py-0.5 rounded-full">Gratis</span>
                         </h2>
                         <div className="flex items-center gap-2 text-gray-600 mt-1">
                             <Globe className="w-4 h-4" />
@@ -52,7 +52,7 @@ export const ConfigProfile = () => {
 
                 {/* Quick Overview */}
                 <div className="px-4">
-                    <h3 className="text-sm font-medium mb-3">Quick Overview</h3>
+                    <h3 className="text-sm font-medium mb-3">Vista Rápida</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {items.map((item, idx) => (
                             <div key={idx} className="bg-gray-50 rounded-lg p-3 shadow-sm relative">
@@ -67,11 +67,11 @@ export const ConfigProfile = () => {
 
                 {/* Category */}
                 <div className="px-4">
-                    <h3 className="text-sm font-medium mb-3">My Category</h3>
+                    <h3 className="text-sm font-medium mb-3">Mi Categoría</h3>
                     <div className="flex items-center gap-2">
                         <button className="flex flex-col items-center justify-center bg-red-600 text-white w-20 h-20 rounded-lg hover:bg-red-700">
                             <Plus className="w-6 h-6" />
-                            <span className="text-xs mt-1">Add<br />Category</span>
+                            <span className="text-xs mt-1">Agregar<br />Categoría</span>
                         </button>
                     </div>
                 </div>
@@ -79,7 +79,7 @@ export const ConfigProfile = () => {
                 {/* Buttons */}
                 <div className="flex justify-between px-4 pb-2 pt-4 gap-4">
                     <button className="flex-1 border border-red-500 text-red-600 py-3 rounded-lg hover:bg-red-50">
-                        Make Changes
+                        Hacer Cambios
                     </button>
                     <button className="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700"
                             onClick={async ()=>{
@@ -105,7 +105,7 @@ export const ConfigProfile = () => {
                                 }
                             }}
                     >
-                        Finish Setup
+                        Finalizar Configuración
                     </button>
                 </div>
             </div>

@@ -11,15 +11,16 @@ interface Store {
     updated_at?: string;
 }
 
-interface StoreProfile {
+export interface StoreProfile {
     id: string;
     name: string;
     description?: string;
-    logo_url?: string;
-    banner_url?: string;
+    logo_image?: string;
+    banner_image?: string;
     theme?: string;
     created_at?: string;
     updated_at?: string;
+    phone?: string;
 }
 
 export const useStoreProfile = () => {
@@ -35,7 +36,7 @@ export const useStoreProfile = () => {
         
         try {
             const { data, error: storeError } = await supabase
-                .from('Store')
+                .from('store')
                 .select('*')
                 .eq('lord_id', person.id)
                 .single();
@@ -60,12 +61,9 @@ export const useStoreProfile = () => {
             return null;
         }
         
-        console.log("getStoreProfileByStoreName: Buscando tienda con nombre:", storeName);
-        console.log("getStoreProfileByStoreName: URL de Supabase:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-        
         try {
             const query = supabase
-                .from('Profile_Store')
+                .from('store_profile')
                 .select('*')
                 .eq('name', storeName);
             
@@ -104,7 +102,7 @@ export const useStoreProfile = () => {
             
             // Obtener perfil de la tienda
             const { data, error: profileError } = await supabase
-                .from('Profile_Store')
+                .from('store_profile')
                 .select('*')
                 .eq('id', storeData.profile_id)
                 .single();

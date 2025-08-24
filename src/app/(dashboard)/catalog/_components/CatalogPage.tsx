@@ -1,3 +1,5 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,121 +10,196 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Edit, Filter, Package, Plus, Search, Trash2, X } from "lucide-react";
+import { Edit, Filter, Package, Plus, Search, Trash2, X, Save, Loader2, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useProducts } from "@/hooks/Products/useProducts";
+import { Product, Category } from "@/types/ecomerce";
+import { ProductDetailPage } from './ProductDetailPage';
 
-type ProductStatus = "Active" | "Low Stock" | "Out of Stock";
+export const CatalogPage = () => {
+    const {
+        products,
+        categories,
+        filteredProducts,
+        loading,
+        error,
+        createProduct,
+        updateProduct,
+        deleteProduct,
+        filterProducts,
+        searchProducts,
+        clearFilters,
+        currentFilters
+    } = useProducts();
 
-type Product = {
-    id: number;
-    name: string;
-    price: number;
-    stock: number;
-    category: string;
-    status: ProductStatus;
-    brand: string;
-    fitment: string;
-    image: string;
-    badge?: string;
-};
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [priceRange, setPriceRange] = useState([0, 1000]);
+    const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editForm, setEditForm] = useState<Partial<Product>>({});
+    
+    // Estados de paginación
+    const [currentPage, setCurrentPage] = useState(1);
+    const [productsPerPage] = useState(12);
+    
+    // Estado para página de producto
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-const products: Product[] = [
-    { 
-        id: 1, 
-        name: "Brake Pads", 
-        price: 35.00, 
-        stock: 25, 
-        category: "Brake", 
-        status: "Active",
-        brand: "Bosch",
-        fitment: "Toyota Corolla 2018-2022",
-        image: "/images/brake-pads.jpg"
-    },
-    { 
-        id: 2, 
-        name: "Oil Filter", 
-        price: 8.50, 
-        stock: 50, 
-        category: "Filters", 
-        status: "Active",
-        brand: "Mann",
-        fitment: "Honda Civic 2019-2023",
-        image: "/images/oil-filter.jpg"
-    },
-    { 
-        id: 3, 
-        name: "Air Filter", 
-        price: 12.00, 
-        stock: 30, 
-        category: "Filters", 
-        status: "Active",
-        brand: "K&N",
-        fitment: "Ford Focus 2020-2024",
-        image: "/images/air-filter.jpg"
-    },
-    { 
-        id: 4, 
-        name: "Spark Plugs", 
-        price: 15.00, 
-        stock: 40, 
-        category: "Engine", 
-        status: "Active",
-        brand: "NGK",
-        fitment: "Volkswagen Golf 2018-2022",
-        image: "/images/spark-plugs.jpg"
-    },
-    { 
-        id: 5, 
-        name: "Spark Plugs", 
-        price: 15.00, 
-        stock: 40, 
-        category: "Engine", 
-        status: "Active",
-        brand: "NGK",
-        fitment: "Volkswagen Golf 2018-2022",
-        image: "/images/spark-plugs.jpg"
-    },
-    { 
-        id: 6, 
-        name: "Spark Plugs", 
-        price: 15.00, 
-        stock: 40, 
-        category: "Engine", 
-        status: "Active",
-        brand: "NGK",
-        fitment: "Volkswagen Golf 2018-2022",
-        image: "/images/spark-plugs.jpg"
+    // Aplicar filtros cuando cambien los estados
+    useEffect(() => {
+        const filters: any = {};
+        
+        if (selectedCategory) filters.categoria = selectedCategory;
+        if (searchTerm) filters.search = searchTerm;
+        if (priceRange[0] > 0) filters.precioMin = priceRange[0];
+        if (priceRange[1] < 1000) filters.precioMax = priceRange[1];
+        if (selectedBrands.length > 0) filters.marca = selectedBrands.join(",");
+
+        filterProducts(filters);
+    }, [selectedCategory, searchTerm, priceRange, selectedBrands, filterProducts]);
+
+    // Manejar búsqueda
+    const handleSearch = (term: string) => {
+        setSearchTerm(term);
+        searchProducts(term);
+    };
+
+    // Manejar filtro por categoría
+    const handleCategoryFilter = (categoria: string) => {
+        setSelectedCategory(categoria === selectedCategory ? "" : categoria);
+    };
+
+    // Manejar filtro por marca
+    const handleBrandFilter = (brand: string) => {
+        setSelectedBrands(prev => 
+            prev.includes(brand) 
+                ? prev.filter(b => b !== brand)
+                : [...prev, brand]
+        );
+    };
+
+    // Manejar filtro por precio
+    const handlePriceFilter = (range: number[]) => {
+        setPriceRange(range);
+    };
+
+    // Limpiar todos los filtros
+    const handleClearFilters = () => {
+        setSearchTerm("");
+        setSelectedCategory("");
+        setPriceRange([0, 1000]);
+        setSelectedBrands([]);
+        clearFilters();
+    };
+
+    // Iniciar edición de producto
+    const handleEditProduct = (product: Product) => {
+        setEditingProduct(product);
+        setEditForm({
+            Nombre: product.Nombre,
+            Descricpion: product.Descricpion,
+            Precio: product.Precio,
+            Imagen: product.Imagen,
+            Categoria: product.Categoria,
+            Marca: product.Marca
+        });
+        setIsEditing(false); // Reset del estado de carga
+    };
+
+    // Guardar cambios del producto
+    const handleSaveProduct = async () => {
+        if (!editingProduct || !editForm.Nombre || !editForm.Precio) return;
+
+        setIsEditing(true); // Iniciar estado de carga
+        try {
+            const result = await updateProduct(editingProduct.SKU, editForm);
+            if (result) {
+                setEditingProduct(null);
+                setEditForm({});
+                setIsEditing(false); // Finalizar estado de carga
+            } else {
+                setIsEditing(false); // Finalizar estado de carga si falla
+            }
+        } catch (error) {
+            console.error("Error al actualizar producto:", error);
+            setIsEditing(false); // Finalizar estado de carga en caso de error
+        }
+    };
+
+    // Eliminar producto
+    const handleDeleteProduct = async (sku: string) => {
+        if (confirm("¿Estás seguro de que quieres eliminar este producto?")) {
+            await deleteProduct(sku);
+        }
+    };
+
+    // Ver detalles del producto
+    const handleViewProduct = (product: Product) => {
+        setSelectedProduct(product);
+    };
+
+    // Volver al catálogo
+    const handleBackToCatalog = () => {
+        setSelectedProduct(null);
+    };
+
+    // Obtener marcas únicas de productos
+    const uniqueBrands = Array.from(new Set(products.map(p => p.Marca).filter((brand): brand is string => Boolean(brand))));
+
+    // Lógica de paginación
+    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+    const startIndex = (currentPage - 1) * productsPerPage;
+    const endIndex = startIndex + productsPerPage;
+    const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
+    // Cambiar página
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Resetear página cuando cambien los filtros
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [selectedCategory, searchTerm, selectedBrands, priceRange]);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="w-8 h-8 animate-spin" />
+                <span className="ml-2">Cargando productos...</span>
+            </div>
+        );
     }
-];
 
-const categories = [
-    { name: "Oil Filters", icon: "🛢️" },
-    { name: "Brake Pads", icon: "🛑" },
-    { name: "Air Filters", icon: "💨" },
-    { name: "Brake Shoes", icon: "👞" },
-    { name: "Bike Tires", icon: "🚲" },
-    { name: "Clutch Kits", icon: "⚙️" },
-    { name: "Spark Plugs", icon: "⚡" },
-    { name: "Car Mirrors", icon: "🪞" }
-];
-
-const getBadgeVariantForStatus = (status: ProductStatus): React.ComponentProps<typeof Badge>['variant'] => {
-    switch (status) {
-        case "Active":
-            return "default";
-        case "Low Stock":
-            return "secondary";
-        case "Out of Stock":
-            return "destructive";
+    if (error) {
+        return (
+            <div className="text-center text-red-500 p-8">
+                <p>Error al cargar productos: {error}</p>
+            </div>
+        );
     }
-};
 
-export const CatalogPage = () => (
+    // Si hay un producto seleccionado, mostrar la página de detalles
+    if (selectedProduct) {
+        return (
+            <ProductDetailPage 
+                product={selectedProduct} 
+                onBack={handleBackToCatalog} 
+            />
+        );
+    }
+
+    return (
     <div className="w-full space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
+                
             <Button className="bg-red-500 hover:bg-red-600 text-white">
                 <Plus className="w-4 h-4 mr-2" />
-                Add Product
+                Agregar Producto
             </Button>
         </div>
 
@@ -130,302 +207,651 @@ export const CatalogPage = () => (
         <div className="flex gap-4">
             <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
+                    <Input
                     type="text"
-                    placeholder="Search..."
+                        placeholder="Buscar productos..."
+                        value={searchTerm}
+                        onChange={(e) => handleSearch(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 />
-            </div>
-            <div className="w-8 h-8 bg-black rounded flex items-center justify-center">
-                <span className="text-white text-xs">⚏</span>
             </div>
             <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline">
                         <Filter className="w-4 h-4 mr-2" />
-                        Filter
+                        Filtros
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-96">
                     <SheetHeader>
-                        <SheetTitle>Filtros de Productos</SheetTitle>
+                        <SheetTitle>Filtros</SheetTitle>
                     </SheetHeader>
-                    <div className="mt-6">
-                        <FilterSidebar />
-                    </div>
+                        <FilterSidebar
+                            categories={categories}
+                            selectedCategory={selectedCategory}
+                            onCategoryFilter={handleCategoryFilter}
+                            uniqueBrands={uniqueBrands}
+                            selectedBrands={selectedBrands}
+                            onBrandFilter={handleBrandFilter}
+                            priceRange={priceRange}
+                            onPriceFilter={handlePriceFilter}
+                            onClearFilters={handleClearFilters}
+                        />
                 </SheetContent>
             </Sheet>
         </div>
 
-        {/* Product Categories */}
-        <div className="w-full">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">Product Category</h2>
-                <a href="#" className="text-red-500 text-sm">See all</a>
-            </div>
-            <div className="grid grid-cols-8 gap-4 w-full">
-                {categories.map((category, index) => (
-                    <div key={index} className="text-center">
-                        <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-2 mx-auto">
-                            <span className="text-2xl">{category.icon}</span>
-                        </div>
-                        <p className="text-xs text-gray-600">{category.name}</p>
-                    </div>
-                ))}
-            </div>
-        </div>
-
-        {/* Recommended Products */}
-        <div className="w-full">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">Recommend for you</h2>
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <Checkbox id="multiple-selection" />
-                        <Label htmlFor="multiple-selection">Multiple Selection</Label>
-                    </div>
-                    <a href="#" className="text-red-500 text-sm">See all</a>
+            {/* Filtros activos */}
+            {(selectedCategory || searchTerm || selectedBrands.length > 0 || (priceRange[0] > 0 || priceRange[1] < 1000)) && (
+                <div className="flex flex-wrap gap-2 items-center">
+                    <span className="text-sm text-gray-600">Filtros activos:</span>
+                    {selectedCategory && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                            Categoría: {selectedCategory}
+                            <X className="w-3 h-3 cursor-pointer" onClick={() => setSelectedCategory("")} />
+                        </Badge>
+                    )}
+                    {searchTerm && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                            Búsqueda: {searchTerm}
+                            <X className="w-3 h-3 cursor-pointer" onClick={() => setSearchTerm("")} />
+                        </Badge>
+                    )}
+                    {selectedBrands.map(brand => (
+                        <Badge key={brand} variant="secondary" className="flex items-center gap-1">
+                            Marca: {brand}
+                            <X className="w-3 h-3 cursor-pointer" onClick={() => handleBrandFilter(brand)} />
+                        </Badge>
+                    ))}
+                    {(priceRange[0] > 0 || priceRange[1] < 1000) && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                            Precio: ${priceRange[0]} - ${priceRange[1]}
+                            <X className="w-3 h-3 cursor-pointer" onClick={() => setPriceRange([0, 1000])} />
+                        </Badge>
+                    )}
+                    <Button variant="outline" size="sm" onClick={handleClearFilters}>
+                        Limpiar Todo
+                    </Button>
                 </div>
-            </div>
-            <div className="flex gap-4 overflow-x-auto w-full">
-                {products.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                ))}
-            </div>
-        </div>
+            )}
 
-        {/* Top Selling Products */}
-        <div className="w-full">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">Top-Selling Product</h2>
-                <a href="#" className="text-red-500 text-sm">See all</a>
-            </div>
-            <div className="flex gap-4 overflow-x-auto w-full">
-                {products.map((product) => (
-                    <ProductCard key={product.id} product={product} showTopSellerBadge />
-                ))}
-            </div>
-        </div>
-    </div>
-);
-
-const ProductCard = ({ product, showTopSellerBadge = false }: { product: Product; showTopSellerBadge?: boolean }) => (
-    <Card className="w-64 flex-shrink-0">
-        <CardContent className="p-0">
-            <div className="relative">
-                <div className="w-full h-40 bg-gray-200 rounded-t-lg flex items-center justify-center">
-                    <Package className="w-16 h-16 text-gray-400" />
-                </div>
-                {showTopSellerBadge && (
-                    <Badge className="absolute top-2 left-2 bg-yellow-500 text-black">
-                        Top Selling
-                    </Badge>
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {currentProducts.length === 0 ? (
+                    <div className="col-span-full text-center py-12 text-gray-500">
+                        {searchTerm || selectedCategory || selectedBrands.length > 0 
+                            ? "No se encontraron productos con los filtros aplicados"
+                            : "No hay productos disponibles"
+                        }
+                    </div>
+                ) : (
+                    currentProducts.map((product) => (
+                        <ProductCard 
+                            key={product.SKU} 
+                            product={product} 
+                            onEdit={handleEditProduct}
+                            onView={handleViewProduct}
+                            onDelete={handleDeleteProduct}
+                        />
+                    ))
                 )}
-                <div className="absolute bottom-2 right-2">
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button size="sm" className="w-8 h-8 p-0 bg-red-500 hover:bg-red-600">
-                                <Plus className="w-4 h-4" />
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="right" className="w-96">
-                            <SheetHeader>
-                                <SheetTitle>{product.name}</SheetTitle>
-                            </SheetHeader>
-                            <div className="mt-6 space-y-4">
-                                <div className="space-y-2">
-                                    <Label>Brand</Label>
-                                    <Input value={product.brand} readOnly className="bg-gray-100" />
+        </div>
+
+            {/* Paginación */}
+            {totalPages > 1 && (
+                <div className="flex justify-center items-center space-x-2 py-8">
+                    <Pagination 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                        totalProducts={filteredProducts.length}
+                        productsPerPage={productsPerPage}
+                        startIndex={startIndex}
+                        endIndex={endIndex}
+                    />
+    </div>
+            )}
+
+            {/* Modal de edición */}
+            {editingProduct && (
+                <Sheet open={!!editingProduct} onOpenChange={() => setEditingProduct(null)}>
+                    <SheetContent side="right" className="w-[500px] max-h-screen overflow-y-auto">
+                        <SheetHeader className="pb-4 border-b border-gray-200">
+                            <SheetTitle className="text-xl font-bold">Editar Producto</SheetTitle>
+                        </SheetHeader>
+                        
+                        <div className="space-y-6 mt-6">
+                            {/* Imagen del producto */}
+                            <div className="space-y-3">
+                                <Label className="text-sm font-medium text-gray-700">Fotografía del Producto</Label>
+                                <div className="relative">
+                                    {editingProduct.Imagen ? (
+                                        <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                                            <img 
+                                                src={editingProduct.Imagen} 
+                                                alt={editingProduct.Nombre || "Producto"} 
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="aspect-video bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                                            <Package className="w-16 h-16 text-gray-400" />
+                                        </div>
+                                    )}
                                 </div>
+                            </div>
+
+                            {/* Campos editables */}
+                            <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label>Category</Label>
-                                    <Select>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Category" />
+                                    <Label className="text-sm font-medium text-gray-700">Nombre del producto</Label>
+                                    <Input 
+                                        placeholder="Nombre del producto"
+                                        value={editForm.Nombre || ""}
+                                        onChange={(e) => setEditForm({...editForm, Nombre: e.target.value})}
+                                        className="border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                    />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-gray-700">Categoría</Label>
+                                    <Select 
+                                        value={editForm.Categoria || ""} 
+                                        onValueChange={(value) => setEditForm({...editForm, Categoria: value})}
+                                    >
+                                        <SelectTrigger className="border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                            <SelectValue placeholder="Seleccionar Categoría" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="brake">Brake</SelectItem>
-                                            <SelectItem value="filters">Filters</SelectItem>
-                                            <SelectItem value="engine">Engine</SelectItem>
+                                            {categories.map((cat) => (
+                                                <SelectItem key={cat.Codigo} value={cat.Categoria || ""}>
+                                                    {cat.Nombre}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
+                                
                                 <div className="space-y-2">
-                                    <Label>Base Price</Label>
-                                    <Input value={`$${product.price.toFixed(2)}`} readOnly className="bg-gray-100" />
+                                    <Label className="text-sm font-medium text-gray-700">Precio</Label>
+                                    <Input 
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                        value={editForm.Precio || ""}
+                                        onChange={(e) => setEditForm({...editForm, Precio: parseFloat(e.target.value) || 0})}
+                                        className="border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                    />
                                 </div>
+                                
                                 <div className="space-y-2">
-                                    <Label>Selling Price</Label>
-                                    <Input value={`$${(product.price * 1.3).toFixed(2)}`} className="text-red-500 font-semibold" />
+                                    <Label className="text-sm font-medium text-gray-700">Marca</Label>
+                                    <Input 
+                                        placeholder="Marca del producto"
+                                        value={editForm.Marca || ""}
+                                        onChange={(e) => setEditForm({...editForm, Marca: e.target.value})}
+                                        className="border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                    />
                                 </div>
+                                
                                 <div className="space-y-2">
-                                    <Label>Badge</Label>
-                                    <Select>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Badge" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="top-seller">Top Seller</SelectItem>
-                                            <SelectItem value="new">New</SelectItem>
-                                            <SelectItem value="sale">Sale</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <Label className="text-sm font-medium text-gray-700">URL de imagen</Label>
+                                    <Input 
+                                        placeholder="https://ejemplo.com/imagen.jpg"
+                                        value={editForm.Imagen || ""}
+                                        onChange={(e) => setEditForm({...editForm, Imagen: e.target.value})}
+                                        className="border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                    />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Status</Label>
-                                    <Select defaultValue="active">
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="active">Active</SelectItem>
-                                            <SelectItem value="draft">Draft</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                            </div>
+
+                            {/* Descripción HTML (solo lectura) */}
+                            <div className="space-y-3 pt-4 border-t border-gray-200">
+                                <Label className="text-sm font-medium text-gray-700">Descripción del Producto</Label>
+                                <div className="bg-white rounded-lg p-6 border border-gray-200 max-h-96 overflow-y-auto shadow-sm">
+                                    {editingProduct.Descricpion ? (
+                                        <div 
+                                            className="prose prose-sm max-w-none text-gray-800 [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:text-gray-900 [&>h1]:mb-3 [&>h1]:mt-6 [&>h1]:first:mt-0 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:text-red-600 [&>h2]:mb-3 [&>h2]:mt-6 [&>h3]:text-lg [&>h3]:font-bold [&>h3]:text-blue-600 [&>h3]:mb-2 [&>h3]:mt-4 [&>p]:mb-4 [&>p]:text-gray-700 [&>p]:leading-relaxed [&>ul]:mb-4 [&>ul]:pl-6 [&>li]:mb-2 [&>li]:text-gray-700 [&>li]:list-disc [&>strong]:font-semibold [&>strong]:text-gray-900 [&>em]:italic [&>em]:text-gray-600 [&>section]:mb-6 [&>section]:p-4 [&>section]:bg-gray-50 [&>section]:rounded-lg [&>section]:border [&>section]:border-gray-200"
+                                            dangerouslySetInnerHTML={{ 
+                                                __html: editingProduct.Descricpion 
+                                            }}
+                                        />
+                                    ) : (
+                                        <p className="text-gray-500 italic">Sin descripción disponible</p>
+                                    )}
                                 </div>
-                                <Button className="w-full bg-red-500 hover:bg-red-600 mt-6">
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Add to My Store
+                                <p className="text-xs text-gray-500">
+                                    La descripción no se puede editar directamente. Contiene información HTML del producto.
+                                </p>
+                            </div>
+
+                            {/* Botones de acción */}
+                            <div className="flex gap-3 pt-6 border-t border-gray-200">
+                                <Button 
+                                    className="flex-1 bg-red-500 hover:bg-red-600"
+                                    onClick={handleSaveProduct}
+                                    disabled={isEditing}
+                                >
+                                    {isEditing ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Guardando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="w-4 h-4 mr-2" />
+                                            Guardar Cambios
+                                        </>
+                                    )}
+                                </Button>
+                                <Button 
+                                    variant="outline" 
+                                    onClick={() => setEditingProduct(null)}
+                                    disabled={isEditing}
+                                    className="border-gray-200 hover:bg-gray-50"
+                                >
+                                    Cancelar
                                 </Button>
                             </div>
-                        </SheetContent>
-                    </Sheet>
+                        </div>
+                    </SheetContent>
+                </Sheet>
+            )}
+        </div>
+    );
+};
+
+const ProductCard = ({ 
+    product, 
+    onEdit, 
+    onView,
+    onDelete 
+}: { 
+    product: Product; 
+    onEdit: (product: Product) => void;
+    onView: (product: Product) => void;
+    onDelete: (sku: string) => void;
+}) => (
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+        <CardContent className="p-0">
+            <div className="relative">
+                <div className="aspect-square bg-gray-200 flex items-center justify-center">
+                    {product.Imagen ? (
+                        <img 
+                            src={product.Imagen} 
+                            alt={product.Nombre || "Producto"} 
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <Package className="w-16 h-16 text-gray-400" />
+                    )}
+                </div>
+                <div className="absolute top-2 right-2">
+                    <Badge variant="default" className="bg-green-500">
+                        En Stock
+                    </Badge>
+                </div>
+                <div className="absolute top-2 left-2 flex gap-2">
+                    <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-8 w-8 p-0 bg-white/90 hover:bg-white"
+                        onClick={() => onEdit(product)}
+                    >
+                        <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-8 w-8 p-0 bg-white/90 hover:bg-white text-blue-500 hover:text-blue-600"
+                        onClick={() => onView(product)}
+                    >
+                        <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-8 w-8 p-0 bg-white/90 hover:bg-white text-red-500 hover:text-red-600"
+                        onClick={() => onDelete(product.SKU)}
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </Button>
                 </div>
             </div>
             <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
-                    <Badge variant="secondary" className="text-xs">In Stock</Badge>
-                    <span className="font-semibold text-red-500">${product.price.toFixed(2)}</span>
+                    <Badge variant="secondary" className="text-xs">Disponible</Badge>
+                    <span className="font-semibold text-red-500">
+                        ${product.Precio?.toFixed(2) || "0.00"}
+                    </span>
                 </div>
-                <h3 className="font-medium mb-1">{product.name}</h3>
-                <p className="text-sm text-gray-600 mb-1">Brand: {product.brand}</p>
-                <p className="text-sm text-gray-600">Fits: {product.fitment}</p>
+                <h3 className="font-medium mb-1">{product.Nombre || "Sin nombre"}</h3>
+                <p className="text-sm text-gray-600 mb-1">
+                    Marca: {product.Marca || "Sin marca"}
+                </p>
+                <p className="text-sm text-gray-600">
+                    Categoría: {product.Categoria || "Sin categoría"}
+                </p>
+                {product.Descricpion && (
+                    <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+                        {product.Descricpion}
+                    </p>
+                )}
             </div>
         </CardContent>
     </Card>
 );
 
-const FilterSidebar = () => (
-    <div className="space-y-6">
-        {/* Category */}
+const FilterSidebar = ({
+    categories,
+    selectedCategory,
+    onCategoryFilter,
+    uniqueBrands,
+    selectedBrands,
+    onBrandFilter,
+    priceRange,
+    onPriceFilter,
+    onClearFilters
+}: {
+    categories: Category[];
+    selectedCategory: string;
+    onCategoryFilter: (categoria: string) => void;
+    uniqueBrands: string[];
+    selectedBrands: string[];
+    onBrandFilter: (brand: string) => void;
+    priceRange: number[];
+    onPriceFilter: (range: number[]) => void;
+    onClearFilters: () => void;
+}) => (
+    <div className="space-y-8">
+        {/* Categorías */}
         <div>
-            <h4 className="font-medium mb-3">Category</h4>
-            <div className="flex flex-wrap gap-2">
-                {["Suspension", "Brake", "Exhaust", "Engine", "Body", "Interior"].map((cat) => (
-                    <button
-                        key={cat}
-                        className={`px-3 py-1 rounded text-sm ${
-                            cat === "Brake" 
-                                ? "bg-black text-white" 
-                                : "bg-gray-100 text-gray-700"
-                        }`}
-                    >
-                        {cat}
-                    </button>
-                ))}
-            </div>
-        </div>
-
-        {/* Brand */}
-        <div>
-            <h4 className="font-medium mb-3">Brand</h4>
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input placeholder="Search Brand" className="pl-10" />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <span className="text-gray-400">↕</span>
-                </div>
-            </div>
-        </div>
-
-        {/* Supplier */}
-        <div>
-            <h4 className="font-medium mb-3">Supplier</h4>
-            <Select>
-                <SelectTrigger>
-                    <SelectValue placeholder="Select Supplier" />
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Categoría</h4>
+            <Select 
+                value={selectedCategory || "all"} 
+                onValueChange={(value) => onCategoryFilter(value === "all" ? "" : value)}
+            >
+                <SelectTrigger className="bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <SelectValue placeholder="Seleccionar Categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="supplier1">Supplier 1</SelectItem>
-                    <SelectItem value="supplier2">Supplier 2</SelectItem>
+                    <SelectItem value="all">Todas las categorías</SelectItem>
+                    {categories.map((cat) => (
+                        <SelectItem key={cat.Codigo} value={cat.Categoria || ""}>
+                            {cat.Nombre || cat.Categoria}
+                        </SelectItem>
+                    ))}
                 </SelectContent>
             </Select>
         </div>
 
-        {/* Parts Type */}
+        {/* Marcas */}
         <div>
-            <h4 className="font-medium mb-3">Parts Type</h4>
-            <div className="grid grid-cols-2 gap-2">
-                {["Break Shoes", "Brake Pads", "Brake Rotors", "Brake Fluid", "Brake Calipers", "Brake Lines"].map((part) => (
-                    <div key={part} className="flex items-center space-x-2">
-                        <Checkbox id={part} />
-                        <Label htmlFor={part} className="text-sm">{part}</Label>
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Marca</h4>
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input 
+                    placeholder="Buscar Marca" 
+                    className="pl-10 pr-10 bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <span className="text-gray-400 text-sm">↕</span>
+                </div>
+            </div>
+        </div>
+
+        {/* Proveedor */}
+        <div>
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Proveedor</h4>
+            <Select>
+                <SelectTrigger className="bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <SelectValue placeholder="Seleccionar Proveedor" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="supplier1">Proveedor 1</SelectItem>
+                    <SelectItem value="supplier2">Proveedor 2</SelectItem>
+                    <SelectItem value="supplier3">Proveedor 3</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+
+        {/* Tipo de Repuesto */}
+        <div>
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Tipo de Repuesto</h4>
+            <div className="grid grid-cols-2 gap-3">
+                {[
+                    "Zapatas de freno",
+                    "Pastillas de freno", 
+                    "Discos de freno",
+                    "Líquido de frenos",
+                    "Caliper de frenos",
+                    "Líneas de freno"
+                ].map((part) => (
+                    <div key={part} className="flex items-center space-x-3">
+                        <Checkbox 
+                            id={part}
+                            className="data-[state=checked]:bg-black data-[state=checked]:border-black"
+                        />
+                        <Label htmlFor={part} className="text-sm text-gray-700 cursor-pointer font-medium">
+                            {part}
+                        </Label>
                     </div>
                 ))}
             </div>
         </div>
 
-        {/* Model */}
+        {/* Modelo */}
         <div>
-            <h4 className="font-medium mb-3">Model</h4>
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Modelo</h4>
             <Select>
-                <SelectTrigger>
-                    <SelectValue placeholder="Select Model" />
+                <SelectTrigger className="bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <SelectValue placeholder="Seleccionar Modelo" />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="corolla">Toyota Corolla</SelectItem>
                     <SelectItem value="civic">Honda Civic</SelectItem>
+                    <SelectItem value="focus">Ford Focus</SelectItem>
+                    <SelectItem value="golf">Volkswagen Golf</SelectItem>
                 </SelectContent>
             </Select>
         </div>
 
-        {/* Year Range */}
+        {/* Año */}
         <div>
-            <h4 className="font-medium mb-3">Year</h4>
-            <div className="grid grid-cols-2 gap-2">
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Año</h4>
+            <div className="grid grid-cols-2 gap-3">
                 <Select>
-                    <SelectTrigger>
-                        <SelectValue placeholder="From" />
+                    <SelectTrigger className="bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                        <SelectValue placeholder="Desde" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="2015">2015</SelectItem>
-                        <SelectItem value="2020">2020</SelectItem>
+                        {Array.from({length: 10}, (_, i) => 2015 + i).map(year => (
+                            <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
                 <Select>
-                    <SelectTrigger>
-                        <SelectValue placeholder="To" />
+                    <SelectTrigger className="bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                        <SelectValue placeholder="Hasta" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="2020">2020</SelectItem>
-                        <SelectItem value="2024">2024</SelectItem>
+                        {Array.from({length: 10}, (_, i) => 2015 + i).map(year => (
+                            <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
             </div>
         </div>
 
-        {/* Price Range */}
+        {/* Rango de Precio */}
         <div>
-            <h4 className="font-medium mb-3">Price Range</h4>
-            <Slider defaultValue={[120, 200]} max={500} step={10} className="mb-2" />
-            <div className="flex justify-between text-sm text-gray-600">
-                <span>$120</span>
-                <span>$200</span>
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Rango de Precio</h4>
+            <div className="space-y-4">
+                <Slider
+                    value={priceRange}
+                    onValueChange={onPriceFilter}
+                    max={1000}
+                    step={10}
+                    className="w-full"
+                />
+                <div className="flex justify-between text-sm text-gray-600 font-medium">
+                    <span>${priceRange[0]}</span>
+                    <span>${priceRange[1]}</span>
+                </div>
             </div>
         </div>
 
-        {/* In Stock */}
+        {/* En Stock */}
         <div>
-            <div className="flex items-center justify-between">
-                <h4 className="font-medium">In Stock</h4>
-                <Switch defaultChecked />
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">En Stock</h4>
+            <div className="flex items-center space-x-3">
+                <Switch 
+                    id="in-stock" 
+                    className="data-[state=checked]:bg-red-500"
+                />
+                <Label htmlFor="in-stock" className="text-sm text-gray-700 font-medium">
+                    Solo productos disponibles
+                </Label>
             </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-between items-center pt-4 border-t">
-            <button className="text-red-500 text-sm">Reset</button>
-            <Button className="bg-red-500 hover:bg-red-600">Apply Filters</Button>
+        {/* Botones de Acción */}
+        <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+            <button
+                onClick={onClearFilters}
+                className="text-red-500 hover:text-red-600 font-medium text-sm transition-colors duration-200"
+            >
+                Reset
+            </button>
+            <Button 
+                onClick={onClearFilters}
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-medium"
+            >
+                Aplicar Filtros
+            </Button>
         </div>
     </div>
 );
+
+// Componente de paginación
+const Pagination = ({
+    currentPage,
+    totalPages,
+    onPageChange,
+    totalProducts,
+    productsPerPage,
+    startIndex,
+    endIndex
+}: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+    totalProducts: number;
+    productsPerPage: number;
+    startIndex: number;
+    endIndex: number;
+}) => {
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxVisiblePages = 5;
+        
+        if (totalPages <= maxVisiblePages) {
+            // Mostrar todas las páginas si hay pocas
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            // Mostrar páginas con elipsis
+            if (currentPage <= 3) {
+                // Páginas iniciales
+                for (let i = 1; i <= 4; i++) {
+                    pages.push(i);
+                }
+                pages.push('...');
+                pages.push(totalPages);
+            } else if (currentPage >= totalPages - 2) {
+                // Páginas finales
+                pages.push(1);
+                pages.push('...');
+                for (let i = totalPages - 3; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                // Páginas intermedias
+                pages.push(1);
+                pages.push('...');
+                for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                    pages.push(i);
+                }
+                pages.push('...');
+                pages.push(totalPages);
+            }
+        }
+        
+        return pages;
+    };
+
+    return (
+        <div className="flex flex-col items-center space-y-4">
+            {/* Información de productos mostrados */}
+            <div className="text-sm text-gray-600">
+                Mostrando {startIndex + 1}-{Math.min(endIndex, totalProducts)} de {totalProducts} productos
+            </div>
+            
+            {/* Controles de paginación */}
+            <div className="flex items-center space-x-2">
+                {/* Botón Anterior */}
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onPageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2"
+                >
+                    Anterior
+                </Button>
+
+                {/* Números de página */}
+                <div className="flex items-center space-x-1">
+                    {getPageNumbers().map((page, index) => (
+                        <div key={index}>
+                            {page === '...' ? (
+                                <span className="px-3 py-2 text-gray-500">...</span>
+                            ) : (
+                                <Button
+                                    variant={currentPage === page ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => onPageChange(page as number)}
+                                    className={`px-3 py-2 min-w-[40px] ${
+                                        currentPage === page 
+                                            ? "bg-red-500 hover:bg-red-600 text-white" 
+                                            : ""
+                                    }`}
+                                >
+                                    {page}
+                                </Button>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Botón Siguiente */}
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onPageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2"
+                >
+                    Siguiente
+                </Button>
+            </div>
+
+            {/* Selector de productos por página */}
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <span>Productos por página:</span>
+                <span className="font-medium">{productsPerPage}</span>
+            </div>
+        </div>
+    );
+};

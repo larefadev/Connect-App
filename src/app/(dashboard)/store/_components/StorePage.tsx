@@ -20,23 +20,23 @@ export const StorePage = () => {
     }, []);
 
     const stats = [
-        { icon: ShoppingBag, label: "Store Total Products", value: "1,500", color: "text-purple-600" },
-        { icon: CheckCircle, label: "Available Products", value: "1,200", color: "text-pink-600" },
-        { icon: XCircle, label: "Unavailable Products", value: "300", color: "text-blue-400" },
-        { icon: Package, label: "Total Product Sold", value: "10,000", color: "text-blue-400" }
+        { icon: ShoppingBag, label: "Total de Productos de la Tienda", value: "1,500", color: "text-purple-600" },
+        { icon: CheckCircle, label: "Productos Disponibles", value: "1,200", color: "text-pink-600" },
+        { icon: XCircle, label: "Productos No Disponibles", value: "300", color: "text-blue-400" },
+        { icon: Package, label: "Total de Productos Vendidos", value: "10,000", color: "text-blue-400" }
     ];
 
     const categories = [
-        { name: "Oil Filters", image: "/images/oil-filter.jpg" },
-        { name: "Break Pads", image: "/images/brake-pads.jpg" },
-        { name: "Break Shoes", image: "/images/brake-shoes.jpg" },
-        { name: "Add Category", isAdd: true }
+        { name: "Filtros de Aceite", image: "/images/oil-filter.jpg" },
+        { name: "Pastillas de Freno", image: "/images/brake-pads.jpg" },
+        { name: "Zapatas de Freno", image: "/images/brake-shoes.jpg" },
+        { name: "Agregar Categoría", isAdd: true }
     ];
 
     const products = [
         {
             id: 1,
-            name: "Brake Pads",
+            name: "Pastillas de Freno",
             brand: "Bosch",
             basePrice: 35.00,
             yourPrice: 45.00,
@@ -45,7 +45,7 @@ export const StorePage = () => {
         },
         {
             id: 2,
-            name: "Brake Pads",
+            name: "Pastillas de Freno",
             brand: "Bosch",
             basePrice: 35.00,
             yourPrice: 45.00,
@@ -54,7 +54,7 @@ export const StorePage = () => {
         },
         {
             id: 3,
-            name: "Brake Pads",
+            name: "Pastillas de Freno",
             brand: "Bosch",
             basePrice: 35.00,
             yourPrice: 45.00,
@@ -63,7 +63,7 @@ export const StorePage = () => {
         },
         {
             id: 4,
-            name: "Brake Pads",
+            name: "Pastillas de Freno",
             brand: "Bosch",
             basePrice: 35.00,
             yourPrice: 45.00,
@@ -113,9 +113,9 @@ export const StorePage = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-gray-900 to-gray-700 opacity-90"></div>
                 <div className="relative z-10 max-w-7xl mx-auto flex justify-between items-center">
                     <div className="flex-1">
-                        <h1 className="text-4xl font-bold mb-4">Fast, Affordable, Delivered to You</h1>
+                        <h1 className="text-4xl font-bold mb-4">Rápido, Asequible, Entregado a tu Puerta</h1>
                         <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg">
-                            Shop now
+                            Comprar ahora
                         </Button>
                     </div>
                     <div className="hidden lg:block">
@@ -135,8 +135,8 @@ export const StorePage = () => {
                                 </div>
                                 <div>
                                     <div className="flex items-center space-x-3 mb-2">
-                                        <h2 className="text-3xl font-bold">{storeProfile?.name || "Auto Parts"}</h2>
-                                        <Badge className="bg-red-500 text-white">free</Badge>
+                                        <h2 className="text-3xl font-bold">{storeProfile?.name || "Repuestos Automotrices"}</h2>
+                                        <Badge className="bg-red-500 text-white">gratis</Badge>
                                     </div>
                                     <div className="space-y-2">
                                         <div className="flex items-center space-x-2 text-gray-600">
@@ -166,7 +166,7 @@ export const StorePage = () => {
 
             {/* Quick Overview */}
             <div className="max-w-7xl mx-auto px-6 mt-8">
-                <h3 className="text-2xl font-bold mb-6">Quick Overview</h3>
+                <h3 className="text-2xl font-bold mb-6">Vista Rápida</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {stats.map((stat, index) => (
                         <Card key={index} className="bg-white shadow-md">
@@ -187,7 +187,7 @@ export const StorePage = () => {
 
             {/* Categories */}
             <div className="max-w-7xl mx-auto px-6 mt-12">
-                <h3 className="text-2xl font-bold mb-6">My Category</h3>
+                <h3 className="text-2xl font-bold mb-6">Mi Categoría</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {categories.map((category, index) => (
                         <div key={index} className="text-center">
@@ -195,7 +195,7 @@ export const StorePage = () => {
                                 <Card className="bg-red-500 text-white cursor-pointer hover:bg-red-600 transition-colors">
                                     <CardContent className="p-6 flex flex-col items-center justify-center h-32">
                                         <Plus className="w-12 h-12 mb-2" />
-                                        <span className="font-medium">Add Category</span>
+                                        <span className="font-medium">Agregar Categoría</span>
                                     </CardContent>
                                 </Card>
                             ) : (
@@ -214,17 +214,17 @@ export const StorePage = () => {
             {/* Products */}
             <div className="max-w-7xl mx-auto px-6 mt-12 mb-12">
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-2xl font-bold">My Products</h3>
+                    <h3 className="text-2xl font-bold">Mis Productos</h3>
                     <Link href="/store/products" className="text-red-500 hover:text-red-600 font-medium">
-                        See all
+                        Ver todos
                     </Link>
                 </div>
                 
                 {/* Tabs */}
                 <div className="flex space-x-1 mb-6">
-                    <Button variant="default" className="rounded-full">All</Button>
-                    <Button variant="outline" className="rounded-full">Available</Button>
-                    <Button variant="outline" className="rounded-full">Unavailable</Button>
+                    <Button variant="default" className="rounded-full">Todos</Button>
+                    <Button variant="outline" className="rounded-full">Disponibles</Button>
+                    <Button variant="outline" className="rounded-full">No Disponibles</Button>
                 </div>
 
                 {/* Product Grid */}
@@ -237,7 +237,7 @@ export const StorePage = () => {
                                         <div className="w-full h-32 bg-gray-200 rounded-lg"></div>
                                         {product.isNew && (
                                             <Badge className="absolute top-2 left-2 bg-orange-500 text-white text-xs">
-                                                New
+                                                Nuevo
                                             </Badge>
                                         )}
                                         <Button 
@@ -250,10 +250,10 @@ export const StorePage = () => {
                                     </div>
                                     <div className="space-y-2">
                                         <h4 className="font-medium">{product.name}</h4>
-                                        <p className="text-sm text-gray-600">Brand: {product.brand}</p>
+                                        <p className="text-sm text-gray-600">Marca: {product.brand}</p>
                                         <div className="space-y-1">
-                                            <p className="text-sm text-gray-500">Base Price ${product.basePrice.toFixed(2)}</p>
-                                            <p className="text-sm font-medium">Your Price ${product.yourPrice.toFixed(2)}</p>
+                                            <p className="text-sm text-gray-500">Precio Base ${product.basePrice.toFixed(2)}</p>
+                                            <p className="text-sm font-medium">Tu Precio ${product.yourPrice.toFixed(2)}</p>
                                         </div>
                                     </div>
                                 </CardContent>

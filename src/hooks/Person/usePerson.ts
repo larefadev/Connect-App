@@ -17,7 +17,7 @@ export const usePerson = () => {
         
         try {
             const { data, error: supabaseError } = await supabase
-                .from('Person')
+                .from('person')
                 .select('*')
                 .eq('auth_id', user.id)
                 .single();

@@ -4,9 +4,9 @@ import { Store, Plus, X, Search, FileText, Printer, Share, Edit, Repeat } from '
 
 // Mock data
 const mockQuotations = [
-  { id: '#123456', customer: 'Liam Smith', status: 'Sent', statusColor: 'text-red-500' },
-  { id: '#123458', customer: 'Liam Smith', status: 'Pending', statusColor: 'text-red-500' },
-  { id: '#123456', customer: 'Liam Smith', status: 'Accepted', statusColor: 'text-green-500' },
+  { id: '#123456', customer: 'Liam Smith', status: 'Enviada', statusColor: 'text-red-500' },
+  { id: '#123458', customer: 'Liam Smith', status: 'Pendiente', statusColor: 'text-red-500' },
+  { id: '#123456', customer: 'Liam Smith', status: 'Aceptada', statusColor: 'text-green-500' },
 ];
 
 const mockQuotationDetail = {
@@ -14,25 +14,25 @@ const mockQuotationDetail = {
   email: 'autoparts.larefa.com',
   phone: '1 888 235 8926',
   address: 'Av. Insurgentes Sur 1234',
-  date: '05 July 2025',
+  date: '05 Julio 2025',
   qid: '00 11 22',
-  validUntil: '20 July 2025',
+  validUntil: '20 Julio 2025',
   customer: {
     name: 'Liam Smith',
     phone: '123 456 789',
-    address: 'House 7/A, Road 15 (Delivery Location)'
+    address: 'Casa 7/A, Calle 15 (Ubicación de Entrega)'
   },
   items: [
-    { name: 'Break Pad', qty: 10, price: 405 },
-    { name: 'Break Shoe', qty: 10, price: 200 }
+    { name: 'Pastillas de Freno', qty: 10, price: 405 },
+    { name: 'Zapatas de Freno', qty: 10, price: 200 }
   ],
   subtotal: 605,
   discount: 0,
   creditFee: 0,
   delivery: 100,
   total: 705,
-  paymentTerms: 'Pay First',
-  paymentMethod: 'Bank Transfer\nOnline Banking',
+  paymentTerms: 'Pagar Primero',
+  paymentMethod: 'Transferencia Bancaria\nBanca en Línea',
   deliveryMethod: 'Uber'
 };
 
@@ -41,12 +41,12 @@ export const QuotationPage = () => {
   const [selectedQuotation, setSelectedQuotation] = useState<typeof mockQuotations[0] | null>(null);
   const [customer, setCustomer] = useState({
     name: 'Liam Smith',
-    address: 'House 7/A, Road 15',
+    address: 'Casa 7/A, Calle 15',
     mobile: '123 456 789'
   });
   const [items, setItems] = useState([
-    { id: 1, name: 'Break Pads', qty: 10, price: 20.00 },
-    { id: 2, name: 'Break Pads', qty: 10, price: 20.00 }
+    { id: 1, name: 'Pastillas de Freno', qty: 10, price: 20.00 },
+    { id: 2, name: 'Pastillas de Freno', qty: 10, price: 20.00 }
   ]);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -77,10 +77,10 @@ export const QuotationPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Customer Details */}
         <div>
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Customer Details</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">Detalles del Cliente</h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Name</label>
+              <label className="block text-sm text-gray-600 mb-1">Nombre</label>
               <input
                 type="text"
                 value={customer.name}
@@ -89,7 +89,7 @@ export const QuotationPage = () => {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Address</label>
+              <label className="block text-sm text-gray-600 mb-1">Dirección</label>
               <input
                 type="text"
                 value={customer.address}
@@ -98,7 +98,7 @@ export const QuotationPage = () => {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Mobile</label>
+              <label className="block text-sm text-gray-600 mb-1">Teléfono Móvil</label>
               <input
                 type="text"
                 value={customer.mobile}
@@ -109,68 +109,108 @@ export const QuotationPage = () => {
           </div>
         </div>
 
-        {/* Item Details */}
+        {/* Company Details */}
         <div>
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Item Details</h3>
-          <div className="space-y-3">
-            <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-600 pb-2">
-              <div className="col-span-6">Items</div>
-              <div className="col-span-2 text-center">QTY</div>
-              <div className="col-span-3 text-right">Price</div>
-              <div className="col-span-1"></div>
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">Detalles de la Empresa</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Nombre de la Empresa</label>
+              <input
+                type="text"
+                defaultValue={mockQuotationDetail.company}
+                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              />
             </div>
-            
-            {items.map((item) => (
-              <div key={item.id} className="grid grid-cols-12 gap-2 items-center">
-                <div className="col-span-6">
-                  <input
-                    type="text"
-                    value={item.name}
-                    onChange={(e) => updateItem(item.id, 'name', e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded bg-gray-50 focus:outline-none focus:ring-1 focus:ring-red-500"
-                    placeholder="Item name"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <input
-                    type="number"
-                    value={item.qty}
-                    onChange={(e) => updateItem(item.id, 'qty', parseInt(e.target.value) || 0)}
-                    className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-center focus:outline-none focus:ring-1 focus:ring-red-500"
-                  />
-                </div>
-                <div className="col-span-3">
-                  <input
-                    type="number"
-                    value={item.price}
-                    onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value) || 0)}
-                    className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-right focus:outline-none focus:ring-1 focus:ring-red-500"
-                    step="0.01"
-                  />
-                </div>
-                <div className="col-span-1">
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    className="text-red-500 hover:text-red-700 p-1"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
-            
-            {/* Add Product Buttons */}
-            {[...Array(8 - items.length)].map((_, index) => (
-              <button
-                key={index}
-                onClick={addItem}
-                className="w-full p-3 border border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-red-500 hover:text-red-500 transition-colors flex items-center justify-center gap-2"
-              >
-                <Plus size={16} />
-                Add Product
-              </button>
-            ))}
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Email</label>
+              <input
+                type="email"
+                defaultValue={mockQuotationDetail.email}
+                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Teléfono</label>
+              <input
+                type="text"
+                defaultValue={mockQuotationDetail.phone}
+                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Dirección</label>
+              <input
+                type="text"
+                defaultValue={mockQuotationDetail.address}
+                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-500 focus:border-red-500"
+              />
+            </div>
           </div>
+        </div>
+      </div>
+
+      {/* Items Section */}
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">Artículos</h3>
+        <div className="space-y-3">
+          {/* Header */}
+          <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-600">
+            <div className="col-span-6">Nombre del Artículo</div>
+            <div className="col-span-2 text-center">Cantidad</div>
+            <div className="col-span-3 text-right">Precio Unitario</div>
+            <div className="col-span-1"></div>
+          </div>
+          
+          {items.map((item) => (
+            <div key={item.id} className="grid grid-cols-12 gap-2 items-center">
+              <div className="col-span-6">
+                <input
+                  type="text"
+                  value={item.name}
+                  onChange={(e) => updateItem(item.id, 'name', e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded bg-gray-50 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  placeholder="Nombre del artículo"
+                />
+              </div>
+              <div className="col-span-2">
+                <input
+                  type="number"
+                  value={item.qty}
+                  onChange={(e) => updateItem(item.id, 'qty', parseInt(e.target.value) || 0)}
+                  className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-center focus:outline-none focus:ring-1 focus:ring-red-500"
+                />
+              </div>
+              <div className="col-span-3">
+                <input
+                  type="number"
+                  value={item.price}
+                  onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value) || 0)}
+                  className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-right focus:outline-none focus:ring-1 focus:ring-red-500"
+                  step="0.01"
+                />
+              </div>
+              <div className="col-span-1">
+                <button
+                  onClick={() => removeItem(item.id)}
+                  className="text-red-500 hover:text-red-700 p-1"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          ))}
+          
+          {/* Add Product Buttons */}
+          {[...Array(8 - items.length)].map((_, index) => (
+            <button
+              key={index}
+              onClick={addItem}
+              className="w-full p-3 border border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-red-500 hover:text-red-500 transition-colors flex items-center justify-center gap-2"
+            >
+              <Plus size={16} />
+              Agregar Producto
+            </button>
+          ))}
         </div>
       </div>
 
@@ -182,7 +222,7 @@ export const QuotationPage = () => {
             Sub Total: ${subtotal.toFixed(2)}
           </div>
           <button className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-medium transition-colors">
-            Create a Quotation
+            Crear Cotización
           </button>
         </div>
       </div>
@@ -198,7 +238,7 @@ export const QuotationPage = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Buscar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 w-64"
@@ -218,18 +258,34 @@ export const QuotationPage = () => {
         {mockQuotations.map((quotation, index) => (
           <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                onClick={() => setSelectedQuotation(quotation)}>
-            <div className="flex items-center justify-between">
+            <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-gray-100 rounded-lg">
-                  <FileText className="text-gray-600" size={20} />
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-red-600" />
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-800">{quotation.customer}</div>
-                  <div className="text-sm text-gray-600">QID {quotation.id}</div>
+                  <div className="font-medium text-gray-900">{quotation.id}</div>
+                  <div className="text-sm text-gray-500">{quotation.customer}</div>
                 </div>
               </div>
-              <div className={`font-medium ${quotation.statusColor}`}>
-                {quotation.status}
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium ${quotation.statusColor}`}>
+                  {quotation.status}
+                </span>
+                <div className="flex gap-1">
+                  <button className="p-2 text-gray-400 hover:text-gray-600">
+                    <Printer size={16} />
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-gray-600">
+                    <Share size={16} />
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-gray-600">
+                    <Edit size={16} />
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-gray-600">
+                    <Repeat size={16} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -238,166 +294,48 @@ export const QuotationPage = () => {
     </div>
   );
 
-  const QuotationDetail = () => (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex justify-between items-start mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-900 rounded-lg">
-                <Store className="text-white" size={20} />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold">{mockQuotationDetail.company}</h1>
-                <div className="text-sm text-gray-600">
-                  <div>{mockQuotationDetail.email}</div>
-                  <div>{mockQuotationDetail.phone}</div>
-                  <div>{mockQuotationDetail.address}</div>
-                </div>
-              </div>
-            </div>
-            <div className="text-right text-sm">
-              <div><span className="font-medium">Date:</span> {mockQuotationDetail.date}</div>
-              <div><span className="font-medium">QID:</span> {mockQuotationDetail.qid}</div>
-              <div><span className="font-medium">Valid Until:</span> {mockQuotationDetail.validUntil}</div>
-            </div>
-          </div>
-
-          {/* Customer Details */}
-          <div className="mb-6">
-            <h3 className="font-semibold mb-2">Customer Details</h3>
-            <div className="text-sm text-gray-600">
-              <div>{mockQuotationDetail.customer.name}</div>
-              <div>{mockQuotationDetail.customer.phone}</div>
-              <div>{mockQuotationDetail.customer.address}</div>
-            </div>
-          </div>
-
-          {/* Items Table */}
-          <div className="mb-6">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Item</th>
-                  <th className="text-center py-2">Qty</th>
-                  <th className="text-right py-2">Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockQuotationDetail.items.map((item, index) => (
-                  <tr key={index} className="border-b">
-                    <td className="py-2">{item.name}</td>
-                    <td className="text-center py-2">x{item.qty}</td>
-                    <td className="text-right py-2">${item.price}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Totals */}
-          <div className="border-t border-dashed pt-4 mb-4">
-            <div className="flex justify-between py-1">
-              <span>Subtotal</span>
-              <span>${mockQuotationDetail.subtotal}</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span>Discount</span>
-              <span>${mockQuotationDetail.discount}</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span>Credit Fee</span>
-              <span>${mockQuotationDetail.creditFee}</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span>Delivery</span>
-              <span>${mockQuotationDetail.delivery}</span>
-            </div>
-          </div>
-
-          <div className="border-t border-dashed pt-4 mb-6">
-            <div className="flex justify-between font-bold text-lg">
-              <span>Total</span>
-              <span>${mockQuotationDetail.total}</span>
-            </div>
-          </div>
-
-          {/* Payment Details */}
-          <div className="grid grid-cols-3 gap-6 text-sm mb-6">
-            <div>
-              <div className="font-medium">Payment Terms</div>
-              <div className="text-gray-600">{mockQuotationDetail.paymentTerms}</div>
-            </div>
-            <div>
-              <div className="font-medium">Payment Method</div>
-              <div className="text-gray-600 whitespace-pre-line">{mockQuotationDetail.paymentMethod}</div>
-            </div>
-            <div>
-              <div className="font-medium">Delivery Method</div>
-              <div className="text-gray-600">{mockQuotationDetail.deliveryMethod}</div>
-            </div>
-          </div>
-
-          {/* Visit Store Button */}
-          <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg mb-6">
-            Visit Store
-          </button>
-        </div>
-      </div>
-
-      {/* Floating Action Menu */}
-      <div className="fixed right-6 top-1/2 transform -translate-y-1/2 bg-white rounded-lg shadow-lg border border-gray-200 p-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Edit size={16} />
-          Edit Quotation
-        </div>
-        <button className="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm flex items-center justify-center gap-2">
-          <Repeat size={16} />
-          Repeat This Order
-        </button>
-        <button className="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm flex items-center justify-center gap-2">
-          <Printer size={16} />
-          Print
-        </button>
-        <button className="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm">
-          Share via WhatsApp
-        </button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header Tabs */}
-      <div className="bg-white shadow-sm">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <Store className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">Cotizaciones</h1>
+                <p className="text-sm text-gray-500">Gestiona tus cotizaciones y presupuestos</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex space-x-8">
             <button
-              onClick={() => {
-                setActiveTab('quotation');
-                setSelectedQuotation(null);
-              }}
-              className={`py-4 px-2 border-b-2 font-medium ${
-                activeTab === 'quotation' && !selectedQuotation
-                  ? 'border-red-500 text-red-500'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              onClick={() => setActiveTab('quotation')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'quotation'
+                  ? 'border-red-500 text-red-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Quotation
+              Nueva Cotización
             </button>
             <button
-              onClick={() => {
-                setActiveTab('history');
-                setSelectedQuotation(null);
-              }}
-              className={`py-4 px-2 border-b-2 font-medium ${
-                activeTab === 'history' && !selectedQuotation
-                  ? 'border-red-500 text-red-500'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              onClick={() => setActiveTab('history')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'history'
+                  ? 'border-red-500 text-red-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              History
+              Historial
             </button>
           </div>
         </div>
@@ -405,13 +343,7 @@ export const QuotationPage = () => {
 
       {/* Content */}
       <div className="py-6">
-        {selectedQuotation ? (
-          <QuotationDetail />
-        ) : activeTab === 'quotation' ? (
-          <QuotationForm />
-        ) : (
-          <HistoryView />
-        )}
+        {activeTab === 'quotation' ? <QuotationForm /> : <HistoryView />}
       </div>
     </div>
   );

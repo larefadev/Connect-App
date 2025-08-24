@@ -89,7 +89,7 @@ export const userRegisterStore = create<RegistrationState>()(
                     })
 
                     if(data && code){
-                        await supabase.from('Person').insert({
+                        await supabase.from('person').insert({
                             username : userData.username!,
                             name : null,
                             last_name : null,

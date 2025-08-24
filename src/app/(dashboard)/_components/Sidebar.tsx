@@ -140,8 +140,8 @@ export const Sidebar = (props: SidebarProps) => {
                             </div> */ }
                             {!isCollapsed && (
                                 <div>
-                                    {storeProfile?.logo_url && (
-                                        <Image src={storeProfile.logo_url} alt="logo" width={100} height={100} />
+                                    {storeProfile?.logo_image && (
+                                        <Image src={storeProfile.logo_image} alt="logo" width={100} height={100} />
                                     )}
                                     <p className="text-xs text-gray-500">{storeProfile?.name}</p>
                                 </div>
