@@ -13,7 +13,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Edit, Filter, Package, Plus, Search, Trash2, X, Save, Loader2, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useProducts } from "@/hooks/Products/useProducts";
-import { Product, Category } from "@/types/ecomerce";
+import { Product, Category, ProductFilters } from "@/types/ecomerce";
 import { ProductDetailPage } from './ProductDetailPage';
 
 export const CatalogPage = () => {
@@ -49,7 +49,7 @@ export const CatalogPage = () => {
 
     // Aplicar filtros cuando cambien los estados
     useEffect(() => {
-        const filters: any = {};
+        const filters: ProductFilters = {};
         
         if (selectedCategory) filters.categoria = selectedCategory;
         if (searchTerm) filters.search = searchTerm;

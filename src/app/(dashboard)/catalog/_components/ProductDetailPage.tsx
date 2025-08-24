@@ -6,13 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Product } from '@/types/ecomerce';
+import { useRouter } from 'next/navigation';
 
 interface ProductDetailPageProps {
     product: Product;
-    onBack: () => void;
+    onBack?: () => void;
 }
 
 export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, onBack }) => {
+    const router = useRouter();
     const [selectedColor, setSelectedColor] = useState<string>('');
     const [selectedDiameter, setSelectedDiameter] = useState<string>('40mm');
     const [selectedWidth, setSelectedWidth] = useState<string>('8"');
@@ -43,13 +45,21 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
         'Respaldado por garantía de 6 meses'
     ];
 
+    const handleBack = () => {
+        if (onBack) {
+            onBack();
+        } else {
+            router.push('/dashboard');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <div className="bg-white border-b border-gray-200 px-6 py-4">
                 <div className="flex items-center space-x-3">
                     <button
-                        onClick={onBack}
+                        onClick={handleBack}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                         <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -113,8 +123,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
                             </div>
                         </div>
 
-
-
                         {/* Key Benefits */}
                         <div>
                             <h3 className="text-xl font-bold text-gray-800 mb-4">Beneficios Clave</h3>
@@ -124,9 +132,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
                                         <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                                         <span className="text-gray-700">
                                             {benefit}
-                                                                                    {benefit.includes('garantía') && (
-                                            <span className="text-red-500 font-semibold"> de 6 meses</span>
-                                        )}
+                                            {benefit.includes('garantía') && (
+                                                <span className="text-red-500 font-semibold"> de 6 meses</span>
+                                            )}
                                         </span>
                                     </div>
                                 ))}
@@ -159,9 +167,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
 
                             {/* Diameter Selection */}
                             <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Diámetro
-                            </label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Diámetro
+                                </label>
                                 <div className="flex flex-wrap gap-2">
                                     {diameterOptions.map((diameter) => (
                                         <button
@@ -181,9 +189,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
 
                             {/* Width Selection */}
                             <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Ancho
-                            </label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Ancho
+                                </label>
                                 <div className="flex flex-wrap gap-2">
                                     {widthOptions.map((width) => (
                                         <button

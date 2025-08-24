@@ -1,103 +1,149 @@
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
-import {AlertTriangle, Eye} from "lucide-react";
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useProducts } from "@/hooks/Products/useProducts";
+import { Package, Tag, TrendingUp, Users } from "lucide-react";
 import React from "react";
 
-export const DashboardInformation = () =>{
-    const walletBalance = 5184.54;
-    const orderData = {
-        total: 5980,
-        success: 3980,
-        pending: 1020,
-        cancelled: 80
+export const DashboardInformation = () => {
+    const { products, categories, loading } = useProducts();
+
+    // Calcular estadísticas básicas
+    const stats = {
+        totalProducts: products.length,
+        totalCategories: categories.length,
+        averagePrice: products.length > 0 
+            ? products.reduce((sum, p) => sum + (p.Precio || 0), 0) / products.length 
+            : 0,
+        productsWithImages: products.filter(p => p.Imagen).length
     };
 
-    return(
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2">
-                <CardHeader>
-                    <CardTitle>Order Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-center mb-4">
-                        <div className="relative w-48 h-48">
-                            <svg className="transform -rotate-90 w-48 h-48">
-                                <circle cx="96" cy="96" r="80" stroke="#e5e7eb" strokeWidth="12" fill="transparent" />
-                                <circle cx="96" cy="96" r="80" stroke="#10b981" strokeWidth="12" fill="transparent"
-                                        strokeDasharray={`${(orderData.success / orderData.total) * 502} 502`} strokeLinecap="round" />
-                                <circle cx="96" cy="96" r="80" stroke="#f59e0b" strokeWidth="12" fill="transparent"
-                                        strokeDasharray={`${(orderData.pending / orderData.total) * 502} 502`}
-                                        strokeDashoffset={`-${(orderData.success / orderData.total) * 502}`} strokeLinecap="round" />
-                                <circle cx="96" cy="96" r="80" stroke="#ef4444" strokeWidth="12" fill="transparent"
-                                        strokeDasharray={`${(orderData.cancelled / orderData.total) * 502} 502`}
-                                        strokeDashoffset={`-${((orderData.success + orderData.pending) / orderData.total) * 502}`} strokeLinecap="round" />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                <span className="text-3xl font-bold">{orderData.total.toLocaleString()}</span>
-                                <span className="text-gray-500">Total Order</span>
-                                <span className="text-gray-500">on this week</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex justify-center space-x-6">
-                        <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                            <span className="text-sm">Success</span>
-                            <span className="text-sm font-semibold">{orderData.success.toLocaleString()}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                            <span className="text-sm">Pending</span>
-                            <span className="text-sm font-semibold">{orderData.pending.toLocaleString()}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                            <span className="text-sm">Cancelled</span>
-                            <span className="text-sm font-semibold">{orderData.cancelled}</span>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+    if (loading) {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => (
+                    <Card key={i} className="animate-pulse">
+                        <CardContent className="p-6">
+                            <div className="h-20 bg-gray-200 rounded mb-4" />
+                            <div className="h-4 bg-gray-200 rounded mb-2" />
+                            <div className="h-8 bg-gray-200 rounded" />
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        );
+    }
 
-            <div className="space-y-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Wallet Balance</CardTitle>
-                        <Button variant="link" className="text-red-500 text-sm p-0">Top Up</Button>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-4 rounded-lg">
-                            <p className="text-sm mb-1">Your Current Balance</p>
-                            <p className="text-2xl font-bold mb-2">${walletBalance.toLocaleString()}</p>
-                            <Button variant="link" className="text-white p-0 text-sm">
-                                Tap to view details
-                            </Button>
+    return (
+        <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Información del Dashboard</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Total de Productos */}
+                <Card className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-600 mb-1">Total de Productos</p>
+                                <p className="text-3xl font-bold text-blue-600">
+                                    {stats.totalProducts.toLocaleString()}
+                                </p>
+                            </div>
+                            <div className="p-3 bg-blue-100 rounded-full">
+                                <Package className="w-8 h-8 text-blue-600" />
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>After Sales Support</CardTitle>
-                        <Button variant="link" className="text-red-500 text-sm p-0">See all</Button>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center justify-center py-8">
-                            <div className="text-center">
-                                <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                                <div className="space-y-2">
-                                    <p className="text-sm font-medium">Tickets</p>
-                                    <p className="text-xs text-gray-500">Active Issues: 3</p>
-                                    <Button className="bg-red-500 hover:bg-red-600 text-white">
-                                        <Eye className="w-4 h-4 mr-2" />
-                                        View Tickets
-                                    </Button>
-                                </div>
+                {/* Total de Categorías */}
+                <Card className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-green-500">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-600 mb-1">Total de Categorías</p>
+                                <p className="text-3xl font-bold text-green-600">
+                                    {stats.totalCategories.toLocaleString()}
+                                </p>
+                            </div>
+                            <div className="p-3 bg-green-100 rounded-full">
+                                <Tag className="w-8 h-8 text-green-600" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Precio Promedio */}
+                <Card className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-purple-500">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-600 mb-1">Precio Promedio</p>
+                                <p className="text-3xl font-bold text-purple-600">
+                                    ${stats.averagePrice.toFixed(2)}
+                                </p>
+                            </div>
+                            <div className="p-3 bg-purple-100 rounded-full">
+                                <TrendingUp className="w-8 h-8 text-purple-600" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Productos con Imágenes */}
+                <Card className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-orange-500">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-600 mb-1">Con Imágenes</p>
+                                <p className="text-3xl font-bold text-orange-600">
+                                    {stats.productsWithImages.toLocaleString()}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                    {stats.totalProducts > 0 
+                                        ? `${((stats.productsWithImages / stats.totalProducts) * 100).toFixed(1)}%`
+                                        : '0%'
+                                    } del total
+                                </p>
+                            </div>
+                            <div className="p-3 bg-orange-100 rounded-full">
+                                <Users className="w-8 h-8 text-orange-600" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Información Adicional */}
+            <div className="grid grid-cols-1 gap-6">
+                {/* Productos por Categoría */}
+                <Card className="hover:shadow-lg transition-all duration-200">
+                    <CardHeader>
+                        <CardTitle className="text-lg text-gray-800">Productos por Categoría</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {categories.length > 0 ? (
+                            <div className="space-y-3">
+                                {categories.slice(0, 5).map((category) => {
+                                    const productCount = products.filter(p => p.Categoria === category.Categoria).length;
+                                    return (
+                                        <div key={category.Codigo} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                            <span className="font-medium text-gray-700">
+                                                {category.Nombre || category.Categoria || 'Sin nombre'}
+                                            </span>
+                                            <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded-full">
+                                                {productCount} productos
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500 text-center py-4">No hay categorías disponibles</p>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
-}
+};

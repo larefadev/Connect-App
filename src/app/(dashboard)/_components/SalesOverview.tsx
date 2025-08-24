@@ -1,5 +1,5 @@
-import {Card, CardContent} from "@/components/ui/card";
-import {DollarSign, ShoppingBag, TrendingUp, Users} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { DollarSign, ShoppingBag, TrendingUp, Users } from "lucide-react";
 import React from "react";
 
 export const SalesOverview = () => {
@@ -10,63 +10,74 @@ export const SalesOverview = () => {
         productsSold: 0
     };
 
-    return(
+    return (
         <div>
-            <h2 className="text-lg font-semibold mb-4">Resumen de ventas</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card>
-                    <CardContent className="p-4">
+            <h2 className="text-xl font-semibold mb-6 text-gray-800">Resumen de Ventas</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600">Total de ventas</p>
-                                <p className="text-2xl font-bold">${salesData.totalRevenue.toLocaleString()}</p>
+                                <p className="text-sm text-gray-600 mb-1">Total de Ventas</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    ${salesData.totalRevenue.toLocaleString()}
+                                </p>
                             </div>
-                            <div className="p-2 bg-purple-100 rounded-full">
-                                <DollarSign className="w-5 h-5 text-purple-600" />
+                            <div className="p-3 bg-purple-100 rounded-full">
+                                <DollarSign className="w-6 h-6 text-purple-600" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardContent className="p-4">
+                
+                <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600">Promedio de ordenes</p>
-                                <p className="text-2xl font-bold">{salesData.averageOrder.toLocaleString()}</p>
+                                <p className="text-sm text-gray-600 mb-1">Promedio de Órdenes</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    ${salesData.averageOrder.toLocaleString()}
+                                </p>
                             </div>
-                            <div className="p-2 bg-pink-100 rounded-full">
-                                <TrendingUp className="w-5 h-5 text-pink-600" />
+                            <div className="p-3 bg-pink-100 rounded-full">
+                                <TrendingUp className="w-6 h-6 text-pink-600" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardContent className="p-4">
+                
+                <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600">Total de clientes</p>
-                                <p className="text-2xl font-bold">{salesData.totalCustomers}</p>
+                                <p className="text-sm text-gray-600 mb-1">Total de Clientes</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    {salesData.totalCustomers.toLocaleString()}
+                                </p>
                             </div>
-                            <div className="p-2 bg-blue-100 rounded-full">
-                                <Users className="w-5 h-5 text-blue-600" />
+                            <div className="p-3 bg-blue-100 rounded-full">
+                                <Users className="w-6 h-6 text-blue-600" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardContent className="p-4">
+                
+                <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600">Productos vendidos</p>
-                                <p className="text-2xl font-bold">{salesData.productsSold}</p>
+                                <p className="text-sm text-gray-600 mb-1">Productos Vendidos</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    {salesData.productsSold.toLocaleString()}
+                                </p>
                             </div>
-                            <div className="p-2 bg-green-100 rounded-full">
-                                <ShoppingBag className="w-5 h-5 text-green-600" />
+                            <div className="p-3 bg-green-100 rounded-full">
+                                <ShoppingBag className="w-6 h-6 text-green-600" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
             </div>
         </div>
-    )
-}
+    );
+};
