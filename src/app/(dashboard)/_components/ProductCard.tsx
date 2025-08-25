@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Product as ProductType } from '@/types/ecomerce';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface ProductCardProps {
     product: ProductType;
@@ -50,9 +51,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, showBadges = 
             )}
             <div className="w-full h-20 bg-gray-100 rounded-md mb-2 flex items-center justify-center">
                 {product.Imagen ? (
-                    <img 
+                    <Image 
                         src={product.Imagen} 
                         alt={product.Nombre || 'Producto'} 
+                        width={80}
+                        height={80}
                         className="w-full h-full object-cover rounded-md"
                     />
                 ) : (

@@ -1,6 +1,7 @@
 "use client"
 import { Plus, Globe, Phone, Copy, MoreVertical } from "lucide-react"
 import {useRegistrationFlow} from "@/hooks/Auth/useRegistrationFlow";
+import Image from "next/image";
 
 export const ConfigProfile = () => {
     const {handleStoreSetup , storeData} = useRegistrationFlow();
@@ -16,15 +17,19 @@ export const ConfigProfile = () => {
         <div  className="flex justify-center items-center h-screen w-screen">
             <div className="max-w-3xl mx-auto bg-white rounded-xl shadow p-4 space-y-4">
                 <div className="relative">
-                    <img
+                    <Image
                         src="/images/Back.png"
                         alt="Banner"
+                        width={800}
+                        height={160}
                         className="w-full h-40 object-cover rounded-t-xl"
                     />
                     <div className="absolute -bottom-6 left-4">
-                        <img
+                        <Image
                             src="https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=Aidan"
                             alt="Logo"
+                            width={64}
+                            height={64}
                             className="w-16 h-16 rounded-full border-4 border-white"
                         />
                     </div>

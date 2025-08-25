@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { useLogin } from "@/hooks/Auth/useLogin";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";

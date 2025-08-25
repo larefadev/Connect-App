@@ -5,7 +5,7 @@ import {useRegistrationFlow} from "@/hooks/Auth/useRegistrationFlow";
 
 export const ConfettiSuccess = () => {
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
-    const {userData , setCurrentStep , currentStep} = useRegistrationFlow()
+    const {userData , setCurrentStep} = useRegistrationFlow()
 
     useEffect(() => {
         setDimensions({ width: window.innerWidth, height: window.innerHeight })

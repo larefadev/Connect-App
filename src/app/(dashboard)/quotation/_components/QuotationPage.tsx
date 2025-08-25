@@ -4,7 +4,7 @@ import { Store, Plus, X, Search, FileText, Edit, Eye, Download, Trash2 } from 'l
 import { useQuotes } from '@/hooks/Quotes/useQuotes';
 import { useQuotePDF } from '@/hooks/Quotes/useQuotePDF';
 import { useProducts } from '@/hooks/Products/useProducts';
-import { ProductQuote, QuoteItem, ClientQuote, CompanyQuote } from '@/types/quote';
+import { ProductQuote } from '@/types/quote';
 import { Product } from '@/types/ecomerce';
 import QuotePreviewModal from '@/components/Quotes/QuotePreviewModal';
 
@@ -13,9 +13,29 @@ import QuotePreviewModal from '@/components/Quotes/QuotePreviewModal';
 // -----------------
 
 type QuotationFormProps = {
-  form: any;
-  handleInputChange: (field: string, value: any) => void;
-  handleItemChange: (index: number, field: string, value: any) => void;
+  form: {
+    clientName: string;
+    clientAddress: string;
+    clientPhone: string;
+    clientEmail: string;
+    companyName: string;
+    companyAddress: string;
+    companyPhone: string;
+    companyEmail: string;
+    quoteDate: string;
+    expirationDate: string;
+    notes: string;
+    termsConditions: string;
+    items: Array<{
+      productSku: string;
+      quantity: number;
+      unitPrice: number;
+      itemDiscount: number;
+      itemNotes: string;
+    }>;
+  };
+  handleInputChange: (field: string, value: string | number) => void;
+  handleItemChange: (index: number, field: string, value: string | number) => void;
   addItem: () => void;
   removeItem: (index: number) => void;
   subtotal: number;
@@ -173,7 +193,7 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({
             <div className="col-span-1"></div>
           </div>
 
-          {form.items.map((item: any, index: number) => (
+          {form.items.map((item, index: number) => (
             <div key={`item-row-${index}`} className="grid grid-cols-12 gap-2 items-center">
               <div className="col-span-4">
                 <select
@@ -427,15 +447,15 @@ const QuotationPage: React.FC = () => {
   }));
 
   const { quotes, loading, error, createQuote, deleteQuote, updateQuoteStatus, searchQuotes, clearError } = useQuotes();
-  const { products, loading: productsLoading, error: productsError } = useProducts();
+  const { products } = useProducts();
   const { generateAndDownloadPDF } = useQuotePDF();
 
   // Stable handlers so child components are pure and don't cause extra remounts
-  const handleInputChange = useCallback((field: string, value: any) => {
+  const handleInputChange = useCallback((field: string, value: string | number) => {
     setForm(prev => ({ ...prev, [field]: value }));
   }, []);
 
-  const handleItemChange = useCallback((index: number, field: string, value: any) => {
+  const handleItemChange = useCallback((index: number, field: string, value: string | number) => {
     setForm(prev => {
       const newItems = [...prev.items];
       newItems[index] = { ...newItems[index], [field]: value };
@@ -452,7 +472,7 @@ const QuotationPage: React.FC = () => {
   }, [products]);
 
   const { subtotal, taxes, total } = useMemo(() => {
-    const subtotal = form.items.reduce((sum: number, item: any) => sum + (item.quantity * item.unitPrice) - (item.itemDiscount || 0), 0);
+    const subtotal = form.items.reduce((sum: number, item) => sum + (item.quantity * item.unitPrice) - (item.itemDiscount || 0), 0);
     const taxes = subtotal * 0.16;
     const total = subtotal + taxes;
     return { subtotal, taxes, total };
@@ -463,7 +483,7 @@ const QuotationPage: React.FC = () => {
   }, []);
 
   const removeItem = useCallback((index: number) => {
-    setForm(prev => ({ ...prev, items: prev.items.length > 1 ? prev.items.filter((_: any, i: number) => i !== index) : prev.items }));
+          setForm(prev => ({ ...prev, items: prev.items.length > 1 ? prev.items.filter((_, i: number) => i !== index) : prev.items }));
   }, []);
 
   const handleCreateQuote = useCallback(async () => {
@@ -485,7 +505,7 @@ const QuotationPage: React.FC = () => {
         phone: form.companyPhone,
         address: form.companyAddress
       },
-      items: form.items.map((item: any) => ({
+              items: form.items.map((item) => ({
         quantity: item.quantity,
         unit_price: item.unitPrice,
         product_sku: item.productSku,

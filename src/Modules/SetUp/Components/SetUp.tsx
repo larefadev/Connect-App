@@ -3,6 +3,7 @@ import { useState } from "react"
 import { useRegistrationFlow } from "@/hooks/Auth/useRegistrationFlow";
 import supabase from "@/lib/Supabase";
 import { StoreData } from "@/types/auth";
+import Image from "next/image";
 
 const SetUp = () => {
     const [storeType, setStoreType] = useState("Local")
@@ -131,7 +132,7 @@ const SetUp = () => {
                 <div className="space-y-2">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
                         {formData[type] ? (
-                            <img src={formData[type]} alt={type} className="w-12 h-12 rounded-full object-cover" />
+                            <Image src={formData[type]} alt={type} width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
                         ) : (
                             <span className="text-2xl">📁</span>
                         )}
@@ -149,33 +150,7 @@ const SetUp = () => {
         </div>
     )
 
-    const RadioButton = ({
-        id,
-        name,
-        value,
-        label,
-        checked,
-        onChange
-    }: {
-        id: string
-        name: string
-        value: string
-        label: string
-        checked: boolean
-        onChange: (value: string) => void
-    }) => (
-        <button
-            type="button"
-            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                checked
-                    ? 'border-red-500 bg-red-50 text-red-700'
-                    : 'border-gray-300 text-gray-700 hover:border-gray-400'
-            }`}
-            onClick={() => onChange(value)}
-        >
-            {label}
-        </button>
-    )
+
 
     const FormSection = ({
         label,

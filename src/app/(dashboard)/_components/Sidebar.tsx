@@ -5,25 +5,20 @@ import Image from 'next/image';
 import supabase from "@/lib/Supabase";
 
 import {
-    Bell,
-    ChevronDown,
     ChevronLeft,
-    FileText,
-    HelpCircle,
     LayoutDashboard,
-    Link, LucideProps, Menu,
+    LucideProps, Menu,
     MessageSquare,
     Package, Settings,
-    ShoppingCart,
     Store,
     User,
-    Wallet,
     LogOut
 } from "lucide-react";
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
 import { useAuthStore } from '@/stores/authStore';
 import { useStoreProfile } from "@/hooks/StoreProfile/useStoreProfile";
+import { UserAvatar } from './UserAvatar';
 
 interface MenuItemType {
     id: string;
@@ -50,11 +45,7 @@ export const Sidebar = (props: SidebarProps) => {
     const { storeProfile } = useStoreProfile();
 
 
-    const cartItems = [
-        { id: 1, name: "Vehicle Charger", price: 15.00, quantity: 2, image: "/api/placeholder/50/50" },
-        { id: 2, name: "Brake Pads", price: 45.00, quantity: 1, image: "/api/placeholder/50/50" },
-        { id: 3, name: "Brake Pads", price: 50.00, quantity: 1, image: "/api/placeholder/50/50" }
-    ];
+
 
     const menuItems: MenuItemType[] = [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Panel de control', badge: null, path: '/dashboard' },
@@ -238,12 +229,7 @@ export const Sidebar = (props: SidebarProps) => {
                             </div>
                             <Bell className="w-5 h-5 text-gray-600" />*/}
                                                     <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-gray-300 rounded-full">
-                                <img src={"https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=Aidan"}
-                                     className="w-8 h-8 rounded-full"
-                                     alt="Avatar"
-                                />
-                            </div>
+                            <UserAvatar email={user?.email || ''} size={32} />
                             <span className="text-sm font-medium">{user?.email}</span>
                             <Button
                                 variant="ghost"
