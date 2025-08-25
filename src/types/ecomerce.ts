@@ -33,6 +33,7 @@ export interface Product {
     Nombre?: string;
     Descricpion?: string;
     Precio?: number;
+    Ganancia?: number; // Porcentaje de ganancia (ej: 25 para 25%)
     Imagen?: string;
     Categoria?: string;
     Marca?: string;

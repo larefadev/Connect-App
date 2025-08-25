@@ -39,6 +39,7 @@ export const CatalogPage = () => {
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState<Partial<Product>>({});
+    const [precioBase, setPrecioBase] = useState<number>(0);
     
     // Estados de paginación
     const [currentPage, setCurrentPage] = useState(1);
@@ -98,23 +99,39 @@ export const CatalogPage = () => {
     const handleEditProduct = (product: Product) => {
         setEditingProduct(product);
         setEditForm({
-            Nombre: product.Nombre,
-            Descricpion: product.Descricpion,
-            Precio: product.Precio,
-            Imagen: product.Imagen,
-            Categoria: product.Categoria,
-            Marca: product.Marca
+            Ganancia: product.Ganancia || 0
         });
         setIsEditing(false); // Reset del estado de carga
     };
 
+    // Calcular precio final con ganancia
+    const calculateFinalPrice = (basePrice: number, ganancia: number) => {
+        return basePrice * (1 + ganancia / 100);
+    };
+
+    // Calcular precio base desde precio final y ganancia
+    const calculateBasePrice = (finalPrice: number, ganancia: number) => {
+        return finalPrice / (1 + ganancia / 100);
+    };
+
     // Guardar cambios del producto
     const handleSaveProduct = async () => {
-        if (!editingProduct || !editForm.Nombre || !editForm.Precio) return;
+        if (!editingProduct) return;
+
+        // Validar que la ganancia no sea negativa
+        if (editForm.Ganancia && editForm.Ganancia < 0) {
+            alert("La ganancia no puede ser negativa");
+            return;
+        }
 
         setIsEditing(true); // Iniciar estado de carga
         try {
-            const result = await updateProduct(editingProduct.SKU, editForm);
+            // Solo actualizar la ganancia
+            const updatesToSave = {
+                Ganancia: editForm.Ganancia
+            };
+
+            const result = await updateProduct(editingProduct.SKU, updatesToSave);
             if (result) {
                 setEditingProduct(null);
                 setEditForm({});
@@ -196,11 +213,35 @@ export const CatalogPage = () => {
     <div className="w-full space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
+            <div className="space-y-2">
+                <h1 className="text-2xl font-bold text-gray-900">Catálogo de Productos</h1>
+                <div className="flex gap-4 text-sm text-gray-600">
+                    <span>Total: {products.length} productos</span>
+                    <span>•</span>
+                    <span>Con ganancia: {products.filter(p => p.Ganancia && p.Ganancia > 0).length} productos</span>
+                    <span>•</span>
+                    <span>Ganancia promedio: {products.length > 0 ? (products.reduce((acc, p) => acc + (p.Ganancia || 0), 0) / products.length).toFixed(1) : 0}%</span>
+                </div>
+            </div>
                 
-            <Button className="bg-red-500 hover:bg-red-600 text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                Agregar Producto
-            </Button>
+            <div className="flex gap-3">
+                <Button 
+                    variant="outline" 
+                    className="border-gray-300 hover:bg-gray-50"
+                    onClick={() => {
+                        if (confirm("¿Aplicar ganancia por defecto del 25% a todos los productos sin ganancia?")) {
+                            // Aquí se podría implementar la lógica para aplicar ganancia por defecto
+                            alert("Función en desarrollo - Se aplicará ganancia por defecto a productos sin ganancia");
+                        }
+                    }}
+                >
+                    Aplicar Ganancia por Defecto
+                </Button>
+                <Button className="bg-red-500 hover:bg-red-600 text-white">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Agregar Producto
+                </Button>
+            </div>
         </div>
 
         {/* Search Bar with Filter Button */}
@@ -275,26 +316,25 @@ export const CatalogPage = () => {
                 </div>
             )}
 
-        {/* Products Grid */}
+                {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {currentProducts.length === 0 ? (
-                    <div className="col-span-full text-center py-12 text-gray-500">
-                        {searchTerm || selectedCategory || selectedBrands.length > 0 
-                            ? "No se encontraron productos con los filtros aplicados"
-                            : "No hay productos disponibles"
-                        }
-                    </div>
-                ) : (
-                    currentProducts.map((product) => (
-                        <ProductCard 
-                            key={product.SKU} 
-                            product={product} 
-                            onEdit={handleEditProduct}
-                            onView={handleViewProduct}
-                            onDelete={handleDeleteProduct}
-                        />
-                    ))
-                )}
+            {currentProducts.length === 0 ? (
+                <div className="col-span-full text-center py-12 text-gray-500">
+                    {searchTerm || selectedCategory || selectedBrands.length > 0 
+                        ? "No se encontraron productos con los filtros aplicados"
+                        : "No hay productos disponibles"
+                    }
+                </div>
+            ) : (
+                currentProducts.map((product) => (
+                    <ProductCard 
+                        key={product.SKU} 
+                        product={product} 
+                        onEdit={handleEditProduct}
+                        onView={handleViewProduct}
+                    />
+                ))
+            )}
         </div>
 
             {/* Paginación */}
@@ -317,10 +357,32 @@ export const CatalogPage = () => {
                 <Sheet open={!!editingProduct} onOpenChange={() => setEditingProduct(null)}>
                     <SheetContent side="right" className="w-[500px] max-h-screen overflow-y-auto">
                         <SheetHeader className="pb-4 border-b border-gray-200">
-                            <SheetTitle className="text-xl font-bold">Editar Producto</SheetTitle>
+                            <SheetTitle className="text-xl font-bold">Configurar Ganancia del Producto</SheetTitle>
+                            <p className="text-sm text-gray-600 mt-1">
+                                Solo se puede modificar el porcentaje de ganancia. Los demás datos son de solo lectura.
+                            </p>
                         </SheetHeader>
                         
                         <div className="space-y-6 mt-6">
+                            {/* Mensaje informativo */}
+                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="flex items-start">
+                                    <div className="flex-shrink-0">
+                                        <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3">
+                                        <h3 className="text-sm font-medium text-blue-800">
+                                            Información del Producto
+                                        </h3>
+                                        <div className="mt-2 text-sm text-blue-700">
+                                            <p>Los datos del producto son de solo lectura. Solo puedes modificar el porcentaje de ganancia para calcular el precio de venta.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Imagen del producto */}
                             <div className="space-y-3">
                                 <Label className="text-sm font-medium text-gray-700">Fotografía del Producto</Label>
@@ -373,35 +435,63 @@ export const CatalogPage = () => {
                                 </div>
                                 
                                 <div className="space-y-2">
-                                    <Label className="text-sm font-medium text-gray-700">Precio</Label>
+                                    <Label className="text-sm font-medium text-gray-700">Precio del Producto (Solo Lectura)</Label>
+                                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                        <span className="text-lg font-semibold text-gray-700">
+                                            ${editingProduct.Precio?.toFixed(2) || "0.00"}
+                                        </span>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Este es el precio actual del producto en la base de datos
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-gray-700">Ganancia (%)</Label>
                                     <Input 
                                         type="number"
-                                        step="0.01"
-                                        placeholder="0.00"
-                                        value={editForm.Precio || ""}
-                                        onChange={(e) => setEditForm({...editForm, Precio: parseFloat(e.target.value) || 0})}
+                                        step="0.1"
+                                        placeholder="0.0"
+                                        value={editForm.Ganancia || ""}
+                                        onChange={(e) => {
+                                            const ganancia = parseFloat(e.target.value) || 0;
+                                            setEditForm({...editForm, Ganancia: ganancia});
+                                        }}
                                         className="border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500"
                                     />
+                                    <p className="text-xs text-gray-500">
+                                        Porcentaje de ganancia que se aplicará al precio del producto
+                                    </p>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-gray-700">Precio con Ganancia Aplicada</Label>
+                                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                        <span className="text-lg font-semibold text-red-600">
+                                            ${((editingProduct.Precio || 0) * (1 + (editForm.Ganancia || 0) / 100)).toFixed(2)}
+                                        </span>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Precio actual (${editingProduct.Precio?.toFixed(2) || "0.00"}) + {editForm.Ganancia || 0}% de ganancia
+                                        </p>
+                                    </div>
                                 </div>
                                 
                                 <div className="space-y-2">
                                     <Label className="text-sm font-medium text-gray-700">Marca</Label>
-                                    <Input 
-                                        placeholder="Marca del producto"
-                                        value={editForm.Marca || ""}
-                                        onChange={(e) => setEditForm({...editForm, Marca: e.target.value})}
-                                        className="border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                    />
+                                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                        <span className="text-gray-700">
+                                            {editingProduct.Marca || "Sin marca"}
+                                        </span>
+                                    </div>
                                 </div>
                                 
                                 <div className="space-y-2">
                                     <Label className="text-sm font-medium text-gray-700">URL de imagen</Label>
-                                    <Input 
-                                        placeholder="https://ejemplo.com/imagen.jpg"
-                                        value={editForm.Imagen || ""}
-                                        onChange={(e) => setEditForm({...editForm, Imagen: e.target.value})}
-                                        className="border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                    />
+                                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                        <span className="text-gray-700 break-all">
+                                            {editingProduct.Imagen || "Sin imagen"}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -435,12 +525,12 @@ export const CatalogPage = () => {
                                     {isEditing ? (
                                         <>
                                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                            Guardando...
+                                            Guardando Ganancia...
                                         </>
                                     ) : (
                                         <>
                                             <Save className="w-4 h-4 mr-2" />
-                                            Guardar Cambios
+                                            Guardar Ganancia
                                         </>
                                     )}
                                 </Button>
@@ -465,12 +555,12 @@ const ProductCard = ({
     product, 
     onEdit, 
     onView,
-    onDelete 
+    //onDelete 
 }: { 
     product: Product; 
     onEdit: (product: Product) => void;
     onView: (product: Product) => void;
-    onDelete: (sku: string) => void;
+    //onDelete: (sku: string) => void;
 }) => (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
         <CardContent className="p-0">
@@ -486,10 +576,15 @@ const ProductCard = ({
                         <Package className="w-16 h-16 text-gray-400" />
                     )}
                 </div>
-                <div className="absolute top-2 right-2">
+                <div className="absolute top-2 right-2 flex flex-col gap-1">
                     <Badge variant="default" className="bg-green-500">
                         En Stock
                     </Badge>
+                    {product.Ganancia && product.Ganancia > 0 && (
+                        <Badge variant="default" className="bg-blue-500 text-xs">
+                            +{product.Ganancia}%
+                        </Badge>
+                    )}
                 </div>
                 <div className="absolute top-2 left-2 flex gap-2">
                     <Button 
@@ -497,6 +592,7 @@ const ProductCard = ({
                         variant="outline" 
                         className="h-8 w-8 p-0 bg-white/90 hover:bg-white"
                         onClick={() => onEdit(product)}
+                        title="Configurar ganancia"
                     >
                         <Edit className="w-4 h-4" />
                     </Button>
@@ -508,22 +604,29 @@ const ProductCard = ({
                     >
                         <Eye className="w-4 h-4" />
                     </Button>
-                    <Button 
+                  {/*  <Button 
                         size="sm" 
                         variant="outline" 
                         className="h-8 w-8 p-0 bg-white/90 hover:bg-white text-red-500 hover:text-red-600"
                         onClick={() => onDelete(product.SKU)}
                     >
                         <Trash2 className="w-4 h-4" />
-                    </Button>
+                    </Button>*/}
                 </div>
             </div>
             <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
                     <Badge variant="secondary" className="text-xs">Disponible</Badge>
-                    <span className="font-semibold text-red-500">
-                        ${product.Precio?.toFixed(2) || "0.00"}
-                    </span>
+                    <div className="text-right">
+                        <span className="font-semibold text-red-500 block">
+                            ${product.Precio?.toFixed(2) || "0.00"}
+                        </span>
+                        {product.Ganancia && product.Ganancia > 0 && (
+                            <span className="text-xs text-green-600 font-medium">
+                                +{product.Ganancia}% ganancia
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <h3 className="font-medium mb-1">{product.Nombre || "Sin nombre"}</h3>
                 <p className="text-sm text-gray-600 mb-1">
@@ -532,11 +635,25 @@ const ProductCard = ({
                 <p className="text-sm text-gray-600">
                     Categoría: {product.Categoria || "Sin categoría"}
                 </p>
-                {product.Descricpion && (
+                {product.Ganancia && product.Ganancia > 0 && (
+                    <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex justify-between items-center text-xs">
+                            <span className="text-green-700">Precio base:</span>
+                            <span className="text-green-800 font-medium">
+                                ${((product.Precio || 0) / (1 + product.Ganancia / 100)).toFixed(2)}
+                            </span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs mt-1">
+                            <span className="text-green-700">Ganancia:</span>
+                            <span className="text-green-800 font-medium">{product.Ganancia}%</span>
+                        </div>
+                    </div>
+                )}
+                {/*product.Descricpion && (
                     <p className="text-sm text-gray-500 mt-2 line-clamp-2">
                         {product.Descricpion}
                     </p>
-                )}
+                */}
             </div>
         </CardContent>
     </Card>
@@ -697,6 +814,31 @@ const FilterSidebar = ({
                 <div className="flex justify-between text-sm text-gray-600 font-medium">
                     <span>${priceRange[0]}</span>
                     <span>${priceRange[1]}</span>
+                </div>
+            </div>
+        </div>
+
+        {/* Rango de Ganancia */}
+        <div>
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Rango de Ganancia</h4>
+            <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <Label className="text-xs text-gray-600">Mínimo (%)</Label>
+                        <Input 
+                            type="number"
+                            placeholder="0"
+                            className="text-sm bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        />
+                    </div>
+                    <div>
+                        <Label className="text-xs text-gray-600">Máximo (%)</Label>
+                        <Input 
+                            type="number"
+                            placeholder="100"
+                            className="text-sm bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        />
+                    </div>
                 </div>
             </div>
         </div>

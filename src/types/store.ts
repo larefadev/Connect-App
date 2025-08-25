@@ -40,3 +40,36 @@ export interface StoreStats {
     value: string;
     color: string;
 }
+
+// Nuevas interfaces para Store y StoreProfile
+export interface Store {
+    id: string;
+    lord_id: string;
+    profile_id: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface StoreProfile {
+    id: string;
+    name: string;
+    description?: string;
+    phone?: string;
+    banner_image?: string;
+    logo_image?: string;
+    web_url?: string;
+    whatsapp_url?: string;
+    type_store?: bigint;
+    address?: bigint;
+    email?: bigint;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface StoreType {
+    id: bigint;
+    name: string;
+    description?: string;
+    created_at?: Date;
+    updated_at?: Date;
+}

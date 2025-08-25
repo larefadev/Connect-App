@@ -19,6 +19,7 @@ export interface Person {
     person_type?: bigint;
     adress_id?: bigint;
     username: string;
+    profile_image?: string;
     // Relaciones opcionales
     Auth?: Auth;
     Address?: Address;
