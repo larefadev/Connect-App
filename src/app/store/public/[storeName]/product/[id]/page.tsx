@@ -1,49 +1,193 @@
 "use client";
 
-import { ArrowLeft, MoreVertical, CheckCircle, Shield, Truck, Star, ShoppingCart, Heart, Share2 } from "lucide-react";
+import { ArrowLeft, MoreVertical, CheckCircle, Shield, Truck, Star, ShoppingCart, Heart, Share2, Package, Clock, MapPin, Store, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useStoreProfile } from "@/hooks/StoreProfile/useStoreProfile";
+import { useStoreConfig } from "@/hooks/StoreProfile/useStoreConfig";
+import { useProducts } from "@/hooks/Products/useProducts";
+import { useEffect, useState } from "react";
+import { ProductImage } from "@/components/ui/product-image";
 
 export default function ProductDetailPage({ params }: { params: Promise<{ storeName: string; id: string }> }) {
     const resolvedParams = useParams();
     const storeName = resolvedParams.storeName as string;
-    const id = resolvedParams.id as string;
+    const productSku = resolvedParams.id as string;
+    
+    const [storeId, setStoreId] = useState<number | null>(null);
+    const [product, setProduct] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const product = {
-        id: id,
-        name: "Brake Pads",
-        sku: "BRK-45872",
-        buyingPrice: 25.00,
-        brand: "Bosch",
-        sellingPrice: 35.00,
-        profit: 10.00,
-        inStock: true,
-        description: "Bosch Premium Ceramic Brake Pads are engineered for superior braking performance and long-lasting durability. Designed to reduce noise, vibration, and brake dust, these pads ensure a smoother, quieter ride while protecting your rotors.",
-        images: [
-            "/images/brake-rotor.jpg",
-            "/images/brake-pads.jpg",
-            "/images/brake-caliper.jpg"
-        ],
-        benefits: [
-            "Reduced brake noise and dust",
-            "Extended pad and rotor life",
-            "Smooth, consistent braking feel",
-            "Easy installation with precise fitment",
-            "Backed by a 6-month warranty"
-        ],
-        options: {
-            color: ["Red", "Black", "Blue"],
-            diameter: ["40mm", "50mm", "60mm", "70mm", "80mm"],
-            width: ["8\"", "9\"", "10\"", "11\"", "12\""]
-        },
-        compatibleWith: "Toyota Corolla 2017-2022 (Front)",
-        warranty: "Backed by a 6-month warranty",
-        deliveryTime: "1-2 Hours (local)/24-48 hrs(national)"
-    };
+    // Obtener perfil de la tienda
+    const { getStoreProfileByStoreName, storeProfilePublic, loading: profileLoading } = useStoreProfile();
+    
+    // Obtener configuración de la tienda
+    const { productsWithDetails, loading: configLoading } = useStoreConfig(storeId);
+    
+    // Obtener todos los productos para buscar el producto específico
+    const { products: allProducts, loading: productsLoading } = useProducts();
+
+    // Log para debugging
+    useEffect(() => {
+        console.log('Estado actual:', {
+            storeId,
+            storeName,
+            productSku,
+            productsWithDetails: productsWithDetails.length,
+            allProducts: allProducts.length,
+            configLoading,
+            productsLoading
+        });
+    }, [storeId, storeName, productSku, productsWithDetails.length, allProducts.length, configLoading, productsLoading]);
+
+    // Cargar perfil de la tienda
+    useEffect(() => {
+        if (storeName) {
+            getStoreProfileByStoreName(storeName);
+        }
+    }, [storeName, getStoreProfileByStoreName]);
+
+    // Obtener el ID de la tienda cuando se cargue el perfil
+    useEffect(() => {
+        if (storeProfilePublic?.id) {
+            console.log('Estableciendo storeId:', storeProfilePublic.id);
+            setStoreId(Number(storeProfilePublic.id));
+        } else {
+            console.log('storeProfilePublic no tiene ID:', storeProfilePublic);
+        }
+    }, [storeProfilePublic?.id]);
+
+    // Buscar el producto específico
+    useEffect(() => {
+        if (productSku && allProducts.length > 0) {
+            console.log('Buscando producto:', productSku);
+            console.log('Productos disponibles:', allProducts.length);
+            console.log('Configuración de tienda cargada:', productsWithDetails.length);
+            
+            const foundProduct = allProducts.find(p => p.SKU === productSku);
+            if (foundProduct) {
+                console.log('Producto encontrado:', foundProduct);
+                
+                // Buscar la configuración de la tienda para este producto
+                const storeConfig = productsWithDetails.find(p => p.SKU === productSku);
+                
+                if (storeConfig) {
+                    console.log('Configuración de tienda encontrada:', storeConfig);
+                    // Combinar información del producto con la configuración de la tienda
+                    setProduct({
+                        ...foundProduct,
+                        config: storeConfig
+                    });
+                } else {
+                    console.log('No hay configuración de tienda para este producto');
+                    // Si no hay configuración de tienda, verificar si la tienda tiene productos configurados
+                    if (productsWithDetails.length === 0) {
+                        console.log('La tienda no tiene productos configurados, mostrando como disponible');
+                        // La tienda aún no tiene productos configurados, mostrar el producto como disponible
+                        setProduct({
+                            ...foundProduct,
+                            config: {
+                                is_active: true,
+                                is_featured: false,
+                                custom_price: null,
+                                stock_quantity: 999, // Stock por defecto alto
+                                custom_profit: null
+                            }
+                        });
+                    } else {
+                        console.log('La tienda tiene productos configurados pero este no está incluido');
+                        // La tienda tiene productos configurados pero este no está incluido
+                        setProduct({
+                            ...foundProduct,
+                            config: {
+                                is_active: false,
+                                is_featured: false,
+                                custom_price: null,
+                                stock_quantity: 0,
+                                custom_profit: null
+                            }
+                        });
+                    }
+                }
+                setLoading(false);
+            } else {
+                console.log('Producto no encontrado en la base de datos');
+                setError('Producto no encontrado');
+                setLoading(false);
+            }
+        }
+    }, [productSku, allProducts, productsWithDetails]);
+
+    // Mostrar loading mientras se carga
+    if (loading || profileLoading || configLoading || productsLoading || !storeId) {
+        console.log('Estado de carga:', { loading, profileLoading, configLoading, productsLoading, storeId });
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                    <p className="text-lg text-gray-600">
+                        {!storeId ? 'Cargando perfil de tienda...' : 'Cargando producto...'}
+                    </p>
+                    <div className="text-sm text-gray-500 mt-2">
+                        <p>Perfil: {profileLoading ? 'Cargando...' : 'Listo'}</p>
+                        <p>Configuración: {configLoading ? 'Cargando...' : 'Listo'}</p>
+                        <p>Productos: {productsLoading ? 'Cargando...' : 'Listo'}</p>
+                        <p>Store ID: {storeId || 'No establecido'}</p>
+                        <p>Store Name: {storeName}</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Mostrar error si algo salió mal
+    if (error || !product) {
+        console.log('Error o producto no encontrado:', { error, product });
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-red-500 text-6xl mb-4">⚠️</div>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Producto no encontrado</h1>
+                    <p className="text-gray-600 mb-4">{error || 'El producto solicitado no existe o no está disponible'}</p>
+                    <div className="text-sm text-gray-500 mb-4">
+                        <p>SKU buscado: {productSku}</p>
+                        <p>Tienda: {storeName}</p>
+                        <p>Productos cargados: {allProducts.length}</p>
+                        <p>Configuración de tienda: {productsWithDetails.length}</p>
+                    </div>
+                    <Link href={`/store/public/${storeName}`}>
+                        <Button className="bg-red-600 hover:bg-red-700">
+                            Volver a la tienda
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    // Quitamos la validación de activo/inactivo - todos los productos se muestran
+    // Solo verificamos si hay stock disponible para mostrar la interfaz apropiada
+    const hasStock = product.config?.stock_quantity > 0;
+
+    // Log para debugging del producto final
+    console.log('Producto a mostrar:', {
+        SKU: product.SKU,
+        Nombre: product.Nombre,
+        is_active: product.config?.is_active,
+        stock_quantity: product.config?.stock_quantity,
+        hasStock,
+        config: product.config
+    });
+
+    // Calcular precio final
+    const finalPrice = product.config.custom_price || product.Precio || 0;
+    const basePrice = product.Precio || 0;
+    const hasCustomPrice = product.config.custom_price && product.config.custom_price !== basePrice;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -53,11 +197,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
                     <div className="flex items-center justify-between h-16">
                         <Link href={`/store/public/${storeName}`} className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
                             <ArrowLeft className="w-5 h-5" />
-                            <span>Back to {storeName}</span>
+                            <span>Volver a {storeProfilePublic?.name || storeName}</span>
                         </Link>
-                        <Button variant="ghost" size="sm">
-                            <MoreVertical className="w-5 h-5" />
-                        </Button>
+                        <div className="flex items-center space-x-4">
+                            <Button variant="ghost" size="sm">
+                                <Heart className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                                <Share2 className="w-4 h-4" />
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -66,15 +215,23 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {/* Left Column - Images */}
                     <div>
-                        {/* Image Carousel */}
+                        {/* Main Image */}
                         <div className="relative mb-6">
-                            <div className="w-full h-96 bg-gray-200 rounded-lg mb-4"></div>
-                            {/* Carousel Dots */}
-                            <div className="flex justify-center space-x-2">
-                                <div className="w-3 h-3 bg-gray-800 rounded-full"></div>
-                                <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                                <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                            </div>
+                            <ProductImage
+                                src={product.Imagen}
+                                alt={product.Nombre || 'Producto'}
+                                className="w-full h-96 object-cover rounded-lg"
+                            />
+                            {product.config.is_featured && (
+                                <Badge className="absolute top-4 left-4 bg-orange-500 text-white">
+                                    Destacado
+                                </Badge>
+                            )}
+                        </div>
+
+                        {/* Product SKU */}
+                        <div className="text-center">
+                            <p className="text-sm text-gray-500">SKU: {product.SKU}</p>
                         </div>
                     </div>
 
@@ -82,130 +239,172 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
                     <div className="space-y-6">
                         {/* Product Title and Basic Info */}
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
-                            <p className="text-gray-600 mb-2">SKU: {product.sku}</p>
-                            <p className="text-gray-600 mb-2">Buying Price: ${product.buyingPrice.toFixed(2)}</p>
-                            <p className="text-gray-600 mb-4">
-                                Brand: <span className="text-orange-500 font-medium">{product.brand}</span>
-                            </p>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.Nombre}</h1>
+                            {product.Marca && (
+                                <p className="text-gray-600 mb-2">
+                                    Marca: <span className="text-orange-500 font-medium">{product.Marca}</span>
+                                </p>
+                            )}
+                            {product.Categoria && (
+                                <p className="text-gray-600 mb-4">
+                                    Categoría: <span className="text-blue-500 font-medium">{product.Categoria}</span>
+                                </p>
+                            )}
                         </div>
 
                         {/* Pricing and Stock */}
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-sm text-gray-600">Selling Price: <span className="text-red-600 font-medium">${product.sellingPrice.toFixed(2)}</span></p>
-                                <p className="text-sm text-green-600 font-medium">Profit: ${product.profit.toFixed(2)}</p>
+                        <div className="bg-white p-6 rounded-lg border">
+                            {/* Advertencia de stock si no hay disponible */}
+                            {!hasStock && (
+                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                                    <div className="flex items-center">
+                                        <div className="flex-shrink-0">
+                                            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-3">
+                                            <h3 className="text-sm font-medium text-yellow-800">
+                                                Producto sin stock disponible
+                                            </h3>
+                                            <div className="mt-2 text-sm text-yellow-700">
+                                                <p>Este producto está disponible para consulta pero no hay unidades en stock.</p>
+                                                <p>Estado: {product.config?.is_active ? 'Activo' : 'Inactivo'} | Stock: {product.config?.stock_quantity || 0}</p>
+                                                <p>Puedes contactar a la tienda para más información sobre disponibilidad.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="space-y-2">
+                                    <p className="text-2xl font-bold text-gray-900">
+                                        ${finalPrice.toFixed(2)}
+                                    </p>
+                                    {hasCustomPrice && (
+                                        <p className="text-sm text-gray-500 line-through">
+                                            Precio base: ${basePrice.toFixed(2)}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="text-right">
+                                    {hasStock ? (
+                                        <Badge className="bg-green-500 text-white mb-2">
+                                            En Stock
+                                        </Badge>
+                                    ) : (
+                                        <Badge className="bg-red-500 text-white mb-2">
+                                            Sin Stock
+                                        </Badge>
+                                    )}
+                                    {hasStock && (
+                                        <p className="text-sm text-gray-600">
+                                            {product.config.stock_quantity} unidades disponibles
+                                        </p>
+                                    )}
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <Badge className="bg-orange-500 text-white mb-2">In Stock</Badge>
-                                <p className="text-sm text-gray-600">Selling Price: <span className="text-red-600 font-medium">${product.sellingPrice.toFixed(2)}</span></p>
-                                <p className="text-sm text-green-600 font-medium">Profit: ${product.profit.toFixed(2)}</p>
-                            </div>
+
+                            {/* Profit Information */}
+                            {product.config.custom_profit && (
+                                <div className="border-t pt-4">
+                                    <p className="text-sm text-green-600 font-medium">
+                                        Margen de ganancia: {product.config.custom_profit}%
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Product Description */}
-                        <div>
-                            <p className="text-gray-700 leading-relaxed">{product.description}</p>
-                        </div>
+                        {/*product.Descricpion && (
+                            <div className="bg-white p-6 rounded-lg border">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Descripción</h3>
+                                <p className="text-gray-700 leading-relaxed">{product.Descricpion}</p>
+                            </div>
+                        )*/}
 
-                        {/* Key Benefits */}
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Benefits</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {product.benefits.map((benefit, index) => (
-                                    <div key={index} className="flex items-start space-x-2">
-                                        <CheckCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                                        <span className="text-sm text-gray-700">{benefit}</span>
+                        {/* Product Specifications */}
+                        <div className="bg-white p-6 rounded-lg border">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Especificaciones</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex items-center space-x-3">
+                                    <Package className="w-5 h-5 text-gray-400" />
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-700">SKU</p>
+                                        <p className="text-sm text-gray-600">{product.SKU}</p>
                                     </div>
-                                ))}
+                                </div>
+                                {product.Marca && (
+                                    <div className="flex items-center space-x-3">
+                                        <Star className="w-5 h-5 text-gray-400" />
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-700">Marca</p>
+                                            <p className="text-sm text-gray-600">{product.Marca}</p>
+                                        </div>
+                                    </div>
+                                )}
+                                {product.Categoria && (
+                                    <div className="flex items-center space-x-3">
+                                        <MapPin className="w-5 h-5 text-gray-400" />
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-700">Categoría</p>
+                                            <p className="text-sm text-gray-600">{product.Categoria}</p>
+                                        </div>
+                                    </div>
+                                )}
+                                {product.Ganancia && (
+                                    <div className="flex items-center space-x-3">
+                                        <CheckCircle className="w-5 h-5 text-gray-400" />
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-700">Ganancia Base</p>
+                                            <p className="text-sm text-gray-600">{product.Ganancia}%</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Product Options */}
-                        <div className="space-y-4">
-                            {/* Color */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
-                                <Input 
-                                    placeholder="Color" 
-                                    className="w-full"
-                                    readOnly
-                                />
-                            </div>
-
-                            {/* Diameter */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Diameter</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {product.options.diameter.map((diameter, index) => (
-                                        <Button 
-                                            key={index}
-                                            variant={index === 0 ? "default" : "outline"}
-                                            size="sm"
-                                            className="rounded-full"
-                                        >
-                                            {diameter}
-                                        </Button>
-                                    ))}
+                        {/* Store Information */}
+                        <div className="bg-white p-6 rounded-lg border">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Información de la Tienda</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="text-center">
+                                    <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <Store className="w-6 h-6 text-red-600" />
+                                    </div>
+                                    <p className="text-sm font-medium text-gray-700 mb-1">Tienda</p>
+                                    <p className="text-xs text-gray-600">{storeProfilePublic?.name || storeName}</p>
+                                </div>
+                                <div className="text-center">
+                                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <Clock className="w-6 h-6 text-blue-600" />
+                                    </div>
+                                    <p className="text-sm font-medium text-gray-700 mb-1">Estado del Producto</p>
+                                    <p className="text-xs text-gray-600">
+                                        {product.config?.is_active ? 'Activo' : 'Inactivo'} | Stock: {product.config?.stock_quantity || 0}
+                                    </p>
                                 </div>
                             </div>
-
-                            {/* Width */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Width</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {product.options.width.map((width, index) => (
-                                        <Button 
-                                            key={index}
-                                            variant={index === 0 ? "default" : "outline"}
-                                            size="sm"
-                                            className="rounded-full"
-                                        >
-                                            {width}
-                                        </Button>
-                                    ))}
-                                </div>
-                            </div>
                         </div>
-
-                        {/* Product Info Cards */}
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Product Info</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <Card className="bg-white">
-                                    <CardContent className="p-4 text-center">
-                                        <CheckCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                                        <p className="text-sm font-medium text-gray-700 mb-1">Compatible With</p>
-                                        <p className="text-xs text-gray-600">{product.compatibleWith}</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="bg-white">
-                                    <CardContent className="p-4 text-center">
-                                        <Shield className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                                        <p className="text-sm font-medium text-gray-700 mb-1">Warranty</p>
-                                        <p className="text-xs text-gray-600">{product.warranty}</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="bg-white">
-                                    <CardContent className="p-4 text-center">
-                                        <Truck className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                                        <p className="text-sm font-medium text-gray-700 mb-1">Delivery Time</p>
-                                        <p className="text-xs text-gray-600">{product.deliveryTime}</p>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </div>
-
+                
                         {/* Action Buttons */}
                         <div className="flex space-x-4 pt-4">
                             <Button variant="outline" className="flex-1 border-red-500 text-red-500 hover:bg-red-50">
                                 <Share2 className="w-4 h-4 mr-2" />
-                                Share via Whatsapp
+                                Compartir
                             </Button>
-                            <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white">
-                                <ShoppingCart className="w-4 h-4 mr-2" />
-                                Create Quotation
-                            </Button>
+                            {hasStock ? (
+                                <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white">
+                                    <ShoppingCart className="w-4 h-4 mr-2" />
+                                    Crear Cotización
+                                </Button>
+                            ) : (
+                                <Button className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white">
+                                    <Phone className="w-4 h-4 mr-2" />
+                                    Contactar Tienda
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>

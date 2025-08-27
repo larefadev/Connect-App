@@ -1,9 +1,11 @@
 import { userRegisterStore } from '@/stores/registrationFlowStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export const useRegistrationFlow = () => {
     const [isHydrated, setIsHydrated] = useState(false);
+    const router = useRouter();
     
     const {
         currentStep,
@@ -28,12 +30,14 @@ export const useRegistrationFlow = () => {
         handleResendCode,
         handlePlanSelection,
         handleStoreSetup,
+        handleFinishSetup,
+        clearRegistrationData,
         canProceedToNext,
         getProgressPercentage,
         resetFlow
     } = userRegisterStore();
 
-    const { isAuthenticated } = useAuthStore();
+    const { login } = useAuthStore();
 
     // Usar un timeout muy corto para la hidratación
     useEffect(() => {
@@ -44,13 +48,31 @@ export const useRegistrationFlow = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    // Si está autenticado y el flujo no está en 'finish', redirigir al dashboard
-    useEffect(() => {
-        if (isHydrated && isAuthenticated && currentStep !== 'finish') {
-            // El usuario ya está autenticado, no necesita estar en el flujo de registro
-            // Esto se maneja en el AuthProvider
+    // Función para completar el registro y hacer login
+    const completeRegistration = async () => {
+        try {
+            setLoading(true);
+            
+            // Aquí podrías hacer llamadas adicionales a la API si es necesario
+            // Por ejemplo, crear la tienda en la base de datos
+            
+            // Hacer login con los datos del usuario
+            if (userData.email) {
+                login({
+                    id: Date.now().toString(), // Esto debería ser el ID real del usuario
+                    email: userData.email,
+                    username: userData.username || userData.email.split('@')[0]
+                });
+                
+                // Redirigir al dashboard
+                router.push('/dashboard');
+            }
+        } catch (error) {
+            setError('Error al completar el registro');
+        } finally {
+            setLoading(false);
         }
-    }, [isHydrated, isAuthenticated, currentStep]);
+    };
 
     return {
         isHydrated,
@@ -76,8 +98,11 @@ export const useRegistrationFlow = () => {
         handleResendCode,
         handlePlanSelection,
         handleStoreSetup,
+        handleFinishSetup,
+        clearRegistrationData,
         canProceedToNext,
         getProgressPercentage,
-        resetFlow
+        resetFlow,
+        completeRegistration
     };
 };

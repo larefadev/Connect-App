@@ -12,7 +12,8 @@ import {
     Package, Settings,
     Store,
     User,
-    LogOut
+    LogOut,
+    FileText
 } from "lucide-react";
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
@@ -51,7 +52,7 @@ export const Sidebar = (props: SidebarProps) => {
         { id: 'dashboard', icon: LayoutDashboard, label: 'Panel de control', badge: null, path: '/dashboard' },
         { id: 'catalog', icon: Package, label: 'Catálogo de productos', badge: null, path: '/catalog' },
         //{ id: 'cart', icon: ShoppingCart, label: 'My cart', badge: cartItems.length, path: '/cart' },
-        //{ id: 'orders', icon: FileText, label: 'Order List', badge: null, path: '/orders' },
+        { id: 'orders', icon: FileText, label: 'Pedidos', badge: null, path: '/orders' },
         //{ id: 'wallet', icon: Wallet, label: 'Wallet', badge: null, path: '/wallet' },
         //{ id: 'invoice', icon: FileText, label: 'invoice', badge: null, path: '/invoice' },
         { id: 'quotation', icon: MessageSquare, label: 'Cotizaciones', badge: null, path: '/quotation' }

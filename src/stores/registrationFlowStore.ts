@@ -1,4 +1,4 @@
-import {FlowStep, RegistrationState , FLOW_STEPS} from "@/types/auth";
+import {FlowStep, RegistrationState , FLOW_STEPS, RegisterInputData} from "@/types/auth";
 import { persist } from 'zustand/middleware'
 import {create} from "zustand"
 import { useAuthStore } from './authStore';
@@ -75,7 +75,7 @@ export const userRegisterStore = create<RegistrationState>()(
                 }
             },
 
-            handleRegister: async (userData) => {
+            handleRegister: async (userData: RegisterInputData) => {
                 set({ isLoading: true, error: null })
                 try {
 
@@ -93,6 +93,7 @@ export const userRegisterStore = create<RegistrationState>()(
                             username : userData.username!,
                             name : null,
                             last_name : null,
+                            email:userData.email!,
                             auth_id : data.user?.id
                         })
                     }
@@ -102,9 +103,15 @@ export const userRegisterStore = create<RegistrationState>()(
                     }
 
                    if(data.user){
+                    // Solo guardar datos SEGUROS (sin contraseña)
+                    const safeUserData = {
+                        email: userData.email,
+                        username: userData.username
+                    };
+                    
                     set(state => ({
-                        userData: { ...state.userData, ...userData },
-                        verificationData: { email: userData.email },
+                        userData: { ...state.userData, ...safeUserData },
+                        verificationData: { email: userData.email, isVerified: false },
                         currentStep: 'verify-code',
                         isLoading: false
                     }))
@@ -201,22 +208,49 @@ export const userRegisterStore = create<RegistrationState>()(
                     
                     set(state => ({
                         storeData: { ...state.storeData, ...storeData },
-                        currentStep: 'finish',
+                        currentStep: 'store-preview',
                         isLoading: false
                     }))
                     
-                    const { userData } = get()
-                    useAuthStore.getState().login({
-                        id: Date.now().toString(),
-                        email: userData.email || '',
-                        username: userData.username || ''
-                    })
+                    console.log('Configuración de tienda completada, yendo a preview');
                 } catch (_error) {
                     set({
                         error: 'Error al configurar la tienda',
                         isLoading: false
                     })
                 }
+            },
+
+            handleFinishSetup: async () => {
+                set({ isLoading: true, error: null })
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 500))
+                    
+                    set(state => ({
+                        currentStep: 'finish',
+                        isLoading: false
+                    }))
+                    
+                    console.log('Setup finalizado, yendo a pantalla de éxito');
+                } catch (_error) {
+                    set({
+                        error: 'Error al finalizar setup',
+                        isLoading: false
+                    })
+                }
+            },
+
+            // Función para limpiar todos los datos del flujo de registro
+            clearRegistrationData: () => {
+                set({
+                    userData: {},
+                    verificationData: {},
+                    planData: {},
+                    storeData: {},
+                    error: null,
+                    isLoading: false
+                });
+                console.log('Datos del flujo de registro limpiados exitosamente');
             },
 
             canProceedToNext: () => {
@@ -226,7 +260,7 @@ export const userRegisterStore = create<RegistrationState>()(
                     case 'sign-in':
                         return !!userData.email
                     case 'register':
-                        return !!userData.email && !!userData.password
+                        return !!userData.email && !!userData.username
                     case 'verify-code':
                         return verificationData.isVerified === true
                     case 'account-active':
@@ -234,7 +268,7 @@ export const userRegisterStore = create<RegistrationState>()(
                     case 'plan-selection':
                         return !!planData.planType
                     case 'store-setup':
-                        return !!storeData.storeName && !!storeData.businessEmail
+                        return !!storeData.storeName && !!storeData.corporateEmail
                     case 'store-preview':
                         return true
                     default:
@@ -261,8 +295,15 @@ export const userRegisterStore = create<RegistrationState>()(
             name: 'registration-flow-storage',
             partialize: (state) => ({
                 currentStep: state.currentStep,
-                userData: state.userData,
-                verificationData: state.verificationData,
+                // Solo persistir datos SEGUROS
+                userData: {
+                    email: state.userData.email,
+                    username: state.userData.username
+                },
+                verificationData: {
+                    email: state.verificationData.email,
+                    isVerified: state.verificationData.isVerified
+                },
                 planData: state.planData,
                 storeData: state.storeData
             })

@@ -4,12 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
 
-type Props = {
-  setChange: (val: boolean) => void;
-}
-
-export const Login = (props: Props) => {
-  const { setChange } = props
+export const Login = () => {
   const { email, setEmail, password, setPassword, handleLogin, isLoading, error } = useLogin()
   const router = useRouter()
   const { isAuthenticated } = useAuthStore()
@@ -29,7 +24,9 @@ export const Login = (props: Props) => {
     }
   };
 
-
+  const goToRegister = () => {
+    router.push('/register');
+  };
 
   return (
     <div className="w-full bg-white-100 max-w-md px-8 py-10">
@@ -77,7 +74,7 @@ export const Login = (props: Props) => {
         ¿No tienes una cuenta?{" "}
         <span 
           className="text-red-500 hover:underline cursor-pointer"
-          onClick={() => setChange(true)}
+          onClick={goToRegister}
         >
           Regístrate aquí
         </span>

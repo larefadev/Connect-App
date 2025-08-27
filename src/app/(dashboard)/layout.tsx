@@ -3,6 +3,7 @@ import { usePathname } from 'next/navigation';
 import { Sidebar } from './_components/Sidebar';
 import { useEffect, useState } from "react";
 import { RouteGuard } from '@/components/providers/RouteGuard';
+import { AccountStatusGuard } from '@/components/providers/AccountStatusGuard';
 
 export default function DashboardLayout({
     children,
@@ -19,9 +20,11 @@ export default function DashboardLayout({
 
     return (
         <RouteGuard>
-            <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu}>
-                {children}
-            </Sidebar>
+            <AccountStatusGuard>
+                <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu}>
+                    {children}
+                </Sidebar>
+            </AccountStatusGuard>
         </RouteGuard>
     );
 }

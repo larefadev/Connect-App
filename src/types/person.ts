@@ -26,3 +26,12 @@ export interface Person {
     PersonType?: PersonType; // Person_Catalog
 }
 
+export interface PersonStatus {
+  id: number;
+  status: boolean;
+  username: string;
+  name: string | null;
+  last_name: string | null;
+  email: string;
+}
+

@@ -6,71 +6,115 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { useStoreProfile } from "@/hooks/StoreProfile/useStoreProfile";
+import { useStoreConfig } from "@/hooks/StoreProfile/useStoreConfig";
+import { useProducts } from "@/hooks/Products/useProducts";
 import { useEffect, useState } from "react";
+import { AddProductModal } from "./AddProductModal";
+import { ProductImage } from "@/components/ui/product-image";
 
 export const StorePage = () => {
     const { storeProfile, store, loading } = useStoreProfile();
-    const [baseUrl, setBaseUrl] = useState<string>("");
+    const storeId = storeProfile?.id ? Number(storeProfile.id) : null;
     
-    console.log(storeProfile);
+    const { 
+        productsWithDetails, 
+        loading: configLoading,
+        addProductToStore,
+        removeProductFromStore,
+        toggleProductActive,
+        toggleProductFeatured
+    } = useStoreConfig(storeId);
+    
+    const { products: allProducts } = useProducts();
+    const [baseUrl, setBaseUrl] = useState<string>("");
+    const [selectedTab, setSelectedTab] = useState<'all' | 'available' | 'unavailable'>('all');
+    const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+    
+    // Log para debugging
+    useEffect(() => {
+        console.log('StorePage - Estado actual:', {
+            storeId,
+            storeProfile: storeProfile?.name,
+            productsWithDetails: productsWithDetails.length,
+            configLoading,
+            loading
+        });
+    }, [storeId, storeProfile?.name, productsWithDetails.length, configLoading, loading]);
 
     // Obtener la URL base de manera segura en el cliente
     useEffect(() => {
         setBaseUrl(window.location.origin);
     }, []);
 
+    // Calcular estadísticas reales
+    const totalProducts = productsWithDetails.length;
+    const availableProducts = productsWithDetails.filter(p => p.config.is_active).length;
+    const unavailableProducts = totalProducts - availableProducts;
+    const featuredProducts = productsWithDetails.filter(p => p.config.is_active && p.config.is_featured).length;
+
+    // Log para debugging de productos
+    useEffect(() => {
+        console.log('StorePage - Productos cargados:', {
+            totalProducts,
+            availableProducts,
+            unavailableProducts,
+            featuredProducts,
+            productsWithDetails: productsWithDetails.map(p => ({ SKU: p.SKU, is_active: p.config.is_active }))
+        });
+    }, [totalProducts, availableProducts, unavailableProducts, featuredProducts, productsWithDetails]);
+
     const stats = [
-        { icon: ShoppingBag, label: "Total de Productos de la Tienda", value: "1,500", color: "text-purple-600" },
-        { icon: CheckCircle, label: "Productos Disponibles", value: "1,200", color: "text-pink-600" },
-        { icon: XCircle, label: "Productos No Disponibles", value: "300", color: "text-blue-400" },
-        { icon: Package, label: "Total de Productos Vendidos", value: "10,000", color: "text-blue-400" }
+        { icon: ShoppingBag, label: "Total de Productos de la Tienda", value: totalProducts.toString(), color: "text-purple-600" },
+        { icon: CheckCircle, label: "Productos Disponibles", value: availableProducts.toString(), color: "text-pink-600" },
+        { icon: XCircle, label: "Productos No Disponibles", value: unavailableProducts.toString(), color: "text-blue-400" },
+        { icon: Package, label: "Productos Destacados", value: featuredProducts.toString(), color: "text-blue-400" }
     ];
 
-    const categories = [
-        { name: "Filtros de Aceite", image: "/images/oil-filter.jpg" },
-        { name: "Pastillas de Freno", image: "/images/brake-pads.jpg" },
-        { name: "Zapatas de Freno", image: "/images/brake-shoes.jpg" },
-        { name: "Agregar Categoría", isAdd: true }
-    ];
-
-    const products = [
-        {
-            id: 1,
-            name: "Pastillas de Freno",
-            brand: "Bosch",
-            basePrice: 35.00,
-            yourPrice: 45.00,
-            image: "/images/spark-plugs.jpg",
-            isNew: false
-        },
-        {
-            id: 2,
-            name: "Pastillas de Freno",
-            brand: "Bosch",
-            basePrice: 35.00,
-            yourPrice: 45.00,
-            image: "/images/engine-oil.jpg",
-            isNew: false
-        },
-        {
-            id: 3,
-            name: "Pastillas de Freno",
-            brand: "Bosch",
-            basePrice: 35.00,
-            yourPrice: 45.00,
-            image: "/images/suspension-spring.jpg",
-            isNew: true
-        },
-        {
-            id: 4,
-            name: "Pastillas de Freno",
-            brand: "Bosch",
-            basePrice: 35.00,
-            yourPrice: 45.00,
-            image: "/images/headlight-bulbs.jpg",
-            isNew: false
+    // Filtrar productos según la pestaña seleccionada
+    const getFilteredProducts = () => {
+        switch (selectedTab) {
+            case 'available':
+                return productsWithDetails.filter(p => p.config.is_active);
+            case 'unavailable':
+                return productsWithDetails.filter(p => !p.config.is_active);
+            default:
+                return productsWithDetails;
         }
-    ];
+    };
+
+    const filteredProducts = getFilteredProducts();
+
+    // Función para agregar producto a la tienda
+    const handleAddProduct = async (productSku: string) => {
+        const success = await addProductToStore(productSku);
+        if (success) {
+            console.log('Producto agregado exitosamente');
+        }
+    };
+
+    // Función para remover producto de la tienda
+    const handleRemoveProduct = async (productSku: string) => {
+        const success = await removeProductFromStore(productSku);
+        if (success) {
+            console.log('Producto removido exitosamente');
+        }
+    };
+
+    // Función para cambiar estado activo del producto
+    const handleToggleProductActive = async (productSku: string, isActive: boolean) => {
+        const success = await toggleProductActive(productSku, isActive);
+        if (success) {
+            console.log('Estado del producto cambiado exitosamente');
+        }
+    };
+
+    // Función para cambiar estado destacado del producto
+    const handleToggleProductFeatured = async (productSku: string, isFeatured: boolean) => {
+        const success = await toggleProductFeatured(productSku, isFeatured);
+        if (success) {
+            console.log('Estado destacado del producto cambiado exitosamente');
+        }
+    };
 
     const getPublicStoreUrl = () => {
         if (storeProfile?.name && baseUrl) {
@@ -84,15 +128,15 @@ export const StorePage = () => {
         return baseUrl ? `${baseUrl}/store/public/default` : "/store/public/default";
     };
 
-    const getProductUrl = (productId: number) => {
+    const getProductUrl = (productSku: string) => {
         if (storeProfile?.name && baseUrl) {
             const storeSlug = storeProfile.name
                 .toLowerCase()
                 .replace(/[^a-z0-9]+/g, '-')
                 .replace(/^-+|-+$/g, '');
-            return `${baseUrl}/store/public/${storeSlug}/product/${productId}`;
+            return `${baseUrl}/store/public/${storeSlug}/product/${productSku}`;
         }
-        return baseUrl ? `${baseUrl}/store/public/default/product/${productId}` : `/store/public/default/product/${productId}`;
+        return baseUrl ? `${baseUrl}/store/public/default/product/${productSku}` : `/store/public/default/product/${productSku}`;
     };
 
     if (loading || !baseUrl) {
@@ -101,6 +145,24 @@ export const StorePage = () => {
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
                     <p className="text-gray-600">Cargando información de la tienda...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Mostrar loading solo si no hay storeId o si está cargando la configuración
+    if (!storeId || configLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                    <p className="text-gray-600">
+                        {!storeId ? 'Cargando perfil de tienda...' : 'Cargando configuración de productos...'}
+                    </p>
+                    <div className="text-sm text-gray-500 mt-2">
+                        <p>Store ID: {storeId || 'No establecido'}</p>
+                        <p>Config Loading: {configLoading ? 'Sí' : 'No'}</p>
+                    </div>
                 </div>
             </div>
         );
@@ -185,32 +247,6 @@ export const StorePage = () => {
                 </div>
             </div>
 
-            {/* Categories */}
-            <div className="max-w-7xl mx-auto px-6 mt-12">
-                <h3 className="text-2xl font-bold mb-6">Mi Categoría</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {categories.map((category, index) => (
-                        <div key={index} className="text-center">
-                            {category.isAdd ? (
-                                <Card className="bg-red-500 text-white cursor-pointer hover:bg-red-600 transition-colors">
-                                    <CardContent className="p-6 flex flex-col items-center justify-center h-32">
-                                        <Plus className="w-12 h-12 mb-2" />
-                                        <span className="font-medium">Agregar Categoría</span>
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                <Card className="bg-white shadow-md cursor-pointer hover:shadow-lg transition-shadow">
-                                    <CardContent className="p-4">
-                                        <div className="w-20 h-20 bg-gray-200 rounded-lg mx-auto mb-3"></div>
-                                        <span className="font-medium">{category.name}</span>
-                                    </CardContent>
-                                </Card>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
-
             {/* Products */}
             <div className="max-w-7xl mx-auto px-6 mt-12 mb-12">
                 <div className="flex items-center justify-between mb-6">
@@ -222,45 +258,115 @@ export const StorePage = () => {
                 
                 {/* Tabs */}
                 <div className="flex space-x-1 mb-6">
-                    <Button variant="default" className="rounded-full">Todos</Button>
-                    <Button variant="outline" className="rounded-full">Disponibles</Button>
-                    <Button variant="outline" className="rounded-full">No Disponibles</Button>
+                    <Button 
+                        variant={selectedTab === 'all' ? 'default' : 'outline'} 
+                        className="rounded-full"
+                        onClick={() => setSelectedTab('all')}
+                    >
+                        Todos ({productsWithDetails.length})
+                    </Button>
+                    <Button 
+                        variant={selectedTab === 'available' ? 'default' : 'outline'} 
+                        className="rounded-full"
+                        onClick={() => setSelectedTab('available')}
+                    >
+                        Disponibles ({availableProducts})
+                    </Button>
+                    <Button 
+                        variant={selectedTab === 'unavailable' ? 'default' : 'outline'} 
+                        className="rounded-full"
+                        onClick={() => setSelectedTab('unavailable')}
+                    >
+                        No Disponibles ({unavailableProducts})
+                    </Button>
                 </div>
 
                 {/* Product Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {products.map((product) => (
-                        <Link key={product.id} href={getProductUrl(product.id)} target="_blank">
-                            <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
-                                <CardContent className="p-4">
-                                    <div className="relative mb-3">
-                                        <div className="w-full h-32 bg-gray-200 rounded-lg"></div>
-                                        {product.isNew && (
-                                            <Badge className="absolute top-2 left-2 bg-orange-500 text-white text-xs">
-                                                Nuevo
-                                            </Badge>
-                                        )}
-                                        <Button 
-                                            variant="ghost" 
-                                            size="sm" 
-                                            className="absolute top-2 right-2 p-1 h-auto bg-white/80 hover:bg-white"
-                                        >
-                                            <ShoppingCart className="w-4 h-4 text-pink-500" />
-                                        </Button>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <h4 className="font-medium">{product.name}</h4>
-                                        <p className="text-sm text-gray-600">Marca: {product.brand}</p>
-                                        <div className="space-y-1">
-                                            <p className="text-sm text-gray-500">Precio Base ${product.basePrice.toFixed(2)}</p>
-                                            <p className="text-sm font-medium">Tu Precio ${product.yourPrice.toFixed(2)}</p>
+                    {filteredProducts.length > 0 ? (
+                        filteredProducts.map((product) => (
+                            <div key={product.SKU} className="relative">
+                                <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
+                                    <CardContent className="p-4">
+                                        <div className="relative mb-3">
+                                            <ProductImage
+                                                src={product.Imagen}
+                                                alt={product.Nombre || 'Producto'}
+                                                className="w-full h-32 object-cover rounded-lg"
+                                            />
+                                            {product.config.is_featured && (
+                                                <Badge className="absolute top-2 left-2 bg-orange-500 text-white text-xs">
+                                                    Destacado
+                                                </Badge>
+                                            )}
+                                            <div className="absolute top-2 right-2 flex space-x-1">
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm" 
+                                                    className="p-1 h-auto bg-white/80 hover:bg-white"
+                                                    onClick={() => handleToggleProductFeatured(product.SKU, !product.config.is_featured)}
+                                                >
+                                                    <ShoppingCart className="w-4 h-4 text-pink-500" />
+                                                </Button>
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm" 
+                                                    className="p-1 h-auto bg-white/80 hover:bg-white"
+                                                    onClick={() => handleRemoveProduct(product.SKU)}
+                                                >
+                                                    <XCircle className="w-4 h-4 text-red-500" />
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    ))}
+                                        <div className="space-y-2">
+                                            <h4 className="font-medium">{product.Nombre}</h4>
+                                            <p className="text-sm text-gray-600">Marca: {product.Marca}</p>
+                                            <div className="space-y-1">
+                                                <p className="text-sm text-gray-500">
+                                                    Precio Base ${product.Precio?.toFixed(2) || '0.00'}
+                                                </p>
+                                                <p className="text-sm font-medium">
+                                                    Tu Precio ${product.config.custom_price?.toFixed(2) || product.Precio?.toFixed(2) || '0.00'}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <Badge 
+                                                    variant={product.config.is_active ? 'default' : 'secondary'}
+                                                    className={product.config.is_active ? 'bg-green-500' : 'bg-gray-500'}
+                                                >
+                                                    {product.config.is_active ? 'Disponible' : 'No Disponible'}
+                                                </Badge>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleToggleProductActive(product.SKU, !product.config.is_active)}
+                                                >
+                                                    {product.config.is_active ? 'Desactivar' : 'Activar'}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="col-span-full text-center py-12">
+                            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay productos en esta categoría</h3>
+                            <p className="text-gray-500 mb-4">Agrega productos desde el catálogo para comenzar a vender</p>
+                            <Button 
+                                onClick={() => setIsAddProductModalOpen(true)}
+                                className="bg-red-600 hover:bg-red-700"
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Agregar Productos
+                            </Button>
+                        </div>
+                    )}
                 </div>
+
+                {/* Add Products Section */}
+                {/* This section is now handled by the conditional rendering above */}
             </div>
 
             {/* Public Store Link */}
@@ -299,6 +405,13 @@ export const StorePage = () => {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Add Product Modal */}
+            <AddProductModal
+                isOpen={isAddProductModalOpen}
+                onClose={() => setIsAddProductModalOpen(false)}
+                storeId={storeProfile?.id ? Number(storeProfile.id) : 0}
+            />
         </div>
     );
 };

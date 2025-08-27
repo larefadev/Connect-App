@@ -7,19 +7,19 @@ import SetUp from "@/Modules/SetUp/Components/SetUp";
 import { ConfettiSuccess } from "@/Modules/Congrats/Components/Confetti";
 import { VerifyCode } from "@/Modules/Confirm/Components/VerifyCode";
 import { ConfigProfile } from "@/Modules/ConfigProfile/Components/ConfigProfile";
+import { AccountPendingSuccess } from "./AccountPendingSuccess";
 
 export const RegistrationFlow = () => {
-    const { currentStep, isHydrated } = useRegistrationFlow();
-    const router = useRouter();
+    const { currentStep, isHydrated, isLoading, clearRegistrationData } = useRegistrationFlow();
 
+    // Solo redirigir al dashboard cuando el usuario explícitamente complete todo el flujo
     useEffect(() => {
         if (isHydrated && currentStep === 'finish') {
-            const timer = setTimeout(() => {
-                router.push('/dashboard');
-            }, 500);
-            return () => clearTimeout(timer);
+            // En lugar de redirigir automáticamente, mostrar un mensaje de éxito
+            // y permitir que el usuario navegue manualmente
+            console.log('Registro completado exitosamente');
         }
-    }, [currentStep, router, isHydrated]);
+    }, [currentStep, isHydrated]);
 
     // Renderizar inmediatamente sin esperar hidratación
     const renderCurrentStep = () => {
@@ -34,30 +34,18 @@ export const RegistrationFlow = () => {
                 return <SetUp />;
             case 'store-preview':
                 return <ConfigProfile />;
+
             case 'finish':
                 return (
-                    <div className="flex items-center justify-center min-h-screen">
-                        <div className="text-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-                            <p className="text-gray-600">Redirigiendo al dashboard...</p>
-                        </div>
-                    </div>
+                    <AccountPendingSuccess 
+                        isLoading={isLoading}
+                        onClearData={clearRegistrationData}
+                    />
                 );
             default:
                 return <Index />; // Fallback al componente principal
         }
     };
-
-    if (currentStep === 'finish') {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Redirigiendo al dashboard...</p>
-                </div>
-            </div>
-        );
-    }
 
     return <>{renderCurrentStep()}</>;
 };

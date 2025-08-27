@@ -45,10 +45,10 @@ export const ConfettiSuccess = () => {
                 </div>
 
                 <h2 className="text-xl font-semibold text-gray-900">
-                    Your account is active {userData.username} ! 🎉
+                    ¡Tu cuenta está activa, {userData.username}! 🎉
                 </h2>
                 <p className="text-gray-500 text-sm mt-2">
-                    You’re now ready to set up your store and start selling.
+                    Ahora estás listo para configurar tu tienda y comenzar a vender.
                 </p>
 
                 <button
@@ -57,7 +57,7 @@ export const ConfettiSuccess = () => {
                         setCurrentStep("store-setup");
                     }}
                 >
-                    Continue
+                    Continuar
                 </button>
             </div>
         </div>

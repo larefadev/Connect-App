@@ -1,5 +1,5 @@
-import { RegistrationFlow } from "@/Modules/Auth/Components/Flow/RegistrationFlow";
+import { LoginOnly } from "@/components/Auth/LoginOnly";
 
 export default function Home() {
-  return <RegistrationFlow />;
+  return <LoginOnly />;
 }

@@ -8,13 +8,31 @@ export type AuthStatus = "authenticated" | "unauthenticated";
 export interface Auth {
     id?: string;
     email?: string;
-    password?: string;
     username?: string;
+}
+
+// Tipo seguro para datos de registro (sin contraseña)
+export interface SafeUserData {
+    id?: string;
+    email?: string;
+    username?: string;
+}
+
+// Tipo para datos de entrada de registro (incluye contraseña temporalmente)
+export interface RegisterInputData {
+    email: string;
+    password: string;
+    username: string;
 }
 
 export interface VerificationData {
     email: string
-    code: string
+    isVerified: boolean
+}
+
+// Tipo seguro para verificación (sin código)
+export interface SafeVerificationData {
+    email: string
     isVerified: boolean
 }
 
@@ -24,9 +42,9 @@ export interface RegistrationState {
     isLoading: boolean
     error: string | null
 
-    // Datos del usuario
-    userData: Partial<Auth>
-    verificationData: Partial<VerificationData>
+    // Datos del usuario (SEGUROS - sin información sensible)
+    userData: Partial<SafeUserData>
+    verificationData: Partial<SafeVerificationData>
     planData: Partial<PlanData>
     storeData: Partial<StoreData>
 
@@ -45,11 +63,13 @@ export interface RegistrationState {
 
     // Acciones específicas del flujo
     handleSignIn: (email: string, password: string) => Promise<void>
-    handleRegister: (userData: Auth) => Promise<void>
+    handleRegister: (userData: RegisterInputData) => Promise<void>
     handleVerifyCode: (code: string) => Promise<void>
     handleResendCode: () => Promise<void>
     handlePlanSelection: (plan: PlanData) => Promise<void>
     handleStoreSetup: (storeData: StoreData) => Promise<void>
+    handleFinishSetup: () => Promise<void>
+    clearRegistrationData: () => void
 
     // Utilidades
     canProceedToNext: () => boolean
@@ -83,10 +103,13 @@ export interface StoreData {
     storeName: string
     storeUrl: string
     phone: string
-    businessEmail: string
+    corporateEmail: string // Solo email corporativo
     whatsappUrl: string
     storeType: 'physical' | 'local'
-    physicalAddress: string
+    // Campos de dirección
+    street: string
+    cityId: string
+    zone: string
     rfcType: 'refa' | 'own'
     rfcNumber: string
     logo?: File | string

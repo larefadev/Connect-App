@@ -73,3 +73,41 @@ export interface StoreType {
     created_at?: Date;
     updated_at?: Date;
 }
+
+export interface StoreCategoryConfig {
+    id: number;
+    store_id: number;
+    category_code: string;
+    is_active: boolean;
+    display_order: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface StoreProductConfig {
+    id: number;
+    store_id: number;
+    product_sku: string;
+    is_active: boolean;
+    is_featured: boolean;
+    display_order: number;
+    custom_price: number | null;
+    stock_quantity: number;
+    custom_profit: number | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface StoreConfigData {
+    categories: StoreCategoryConfig[];
+    products: StoreProductConfig[];
+    loading: boolean;
+    error: string | null;
+}
+
+// Nuevo tipo solo para productos
+export interface StoreProductsConfigData {
+    products: StoreProductConfig[];
+    loading: boolean;
+    error: string | null;
+}

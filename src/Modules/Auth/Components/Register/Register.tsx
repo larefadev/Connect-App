@@ -1,14 +1,11 @@
 import Image from "next/image"
 import {useRegistrationFlow} from "@/hooks/Auth/useRegistrationFlow";
 import {useState} from "react";
+import { useToastContext } from "@/components/providers/ToastProvider";
 
-type Props = {
-  setChange: (val: boolean) => void;
-}
-
-export const Register = (props: Props) => {
-  const { setChange } = props
-  const { handleRegister} = useRegistrationFlow();
+export const Register = () => {
+  const { handleRegister, isLoading } = useRegistrationFlow();
+  const { error: showError, success: showSuccess } = useToastContext();
   const [formData, setFormData] = useState({
     email: '',
     username: '',
@@ -19,16 +16,58 @@ export const Register = (props: Props) => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if (formData.password !== formData.confirmPassword) {
-      alert('Las contraseñas no coinciden')
-      return
+    // Validaciones del formulario
+    if (!formData.email || !formData.username || !formData.password || !formData.confirmPassword) {
+      showError('Por favor, completa todos los campos del formulario.', {
+        title: 'Campos Requeridos',
+        duration: 5000
+      });
+      return;
     }
 
-    await handleRegister({
-      email: formData.email,
-      username: formData.username,
-      password: formData.password,
-    })
+    if (formData.password.length < 6) {
+      showError('La contraseña debe tener al menos 6 caracteres.', {
+        title: 'Contraseña Débil',
+        duration: 5000
+      });
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      showError('Las contraseñas no coinciden. Por favor, verifica que ambas contraseñas sean iguales.', {
+        title: 'Error de Validación',
+        duration: 5000
+      });
+      return;
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      showError('Por favor, ingresa un email válido.', {
+        title: 'Email Inválido',
+        duration: 5000
+      });
+      return;
+    }
+
+    try {
+      await handleRegister({
+        email: formData.email,
+        username: formData.username,
+        password: formData.password,
+      });
+      
+      showSuccess('Registro iniciado exitosamente. Revisa tu email para verificar tu cuenta.', {
+        title: 'Registro Exitoso',
+        duration: 7000
+      });
+    } catch (error) {
+      showError('Error al registrar la cuenta. Por favor, intenta nuevamente.', {
+        title: 'Error de Registro',
+        duration: 5000
+      });
+    }
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -36,43 +75,43 @@ export const Register = (props: Props) => {
   }
   
   return (
-    <div className="w-full max-w-md px-8 py-10">
-      <div className="flex flex-col items-center">
-       {/* <Image src="/images/logo.png" alt="Logo" width={250} height={160} /> */}
-        <h2 className="text-xl font-semibold text-gray-900 mt-6">Registrarse</h2>
-        <p className="text-sm text-gray-500 mt-1 mb-6">
-          Regístrate ahora para crear tu nueva cuenta.
-        </p>
-      </div>
-      
+    <div className="w-full max-w-md">
       <form className="space-y-4" onSubmit={handleSubmit}>
         <input
           type="text"
           placeholder="Nombre de usuario"
+          value={formData.username}
           onChange={(e=> handleInputChange('username', e.target.value))}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+          disabled={isLoading}
         />
         <input
           type="email"
+          value={formData.email}
           onChange={(e=> handleInputChange('email', e.target.value))}
           placeholder="Correo electrónico"
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+          disabled={isLoading}
         />
         <input
           type="password"
           placeholder="Contraseña"
+          value={formData.password}
           onChange={(e=> handleInputChange('password', e.target.value))}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+          disabled={isLoading}
         />
         <input
           type="password"
           placeholder="Confirmar contraseña"
+          value={formData.confirmPassword}
           onChange={ (e) => handleInputChange('confirmPassword', e.target.value)}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+          disabled={isLoading}
         />
         
         <div className="flex items-center text-sm mt-2">
-          <input type="checkbox" id="terms" className="mr-2" />
+          <input type="checkbox" id="terms" className="mr-2" required />
           <label htmlFor="terms">
             Acepto los <span className="text-red-500 underline">Términos y Condiciones</span>
           </label>
@@ -80,23 +119,15 @@ export const Register = (props: Props) => {
         
         <button
           type="submit"
-          className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-lg mt-4"
+          className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-lg mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isLoading}
         >
-          Registrarme
+          {isLoading ? 'Registrando...' : 'Registrarme'}
         </button>
+        
       </form>
       
-      <div className="text-center mt-6 text-sm text-gray-600">
-        ¿Ya tienes una cuenta?{" "}
-        <span 
-          className="text-red-500 hover:underline cursor-pointer"
-          onClick={() => setChange(false)}
-        >
-          Iniciar sesión
-        </span>
-      </div>
-      
-      <div className="mt-6 flex justify-center space-x-4">
+     {/* <div className="mt-6 flex justify-center space-x-4">
         <button className="border rounded-full p-2">
           <Image src="https://simpleicons.org/icons/google.svg" alt="Google" width={24} height={24} />
         </button>
@@ -106,7 +137,7 @@ export const Register = (props: Props) => {
         <button className="border rounded-full p-2">
           <Image src="https://simpleicons.org/icons/facebook.svg" alt="Facebook" width={24} height={24} />
         </button>
-      </div>
+      </div>*/}
     </div>
   )
 }

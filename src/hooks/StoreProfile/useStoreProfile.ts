@@ -1,6 +1,6 @@
 import supabase from "@/lib/Supabase";
 import { usePerson } from "../Person/usePerson";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { StoreProfile, Store } from "@/types/store";
 
 export const useStoreProfile = () => {
@@ -12,6 +12,7 @@ export const useStoreProfile = () => {
     const [uploadingImage, setUploadingImage] = useState(false);
     const [storeProfilePublic, setStoreProfilePublic] = useState<StoreProfile | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const isInitialized = useRef(false);
 
     const getStoreByPerson = useCallback(async () => {
         if (!person?.id) return null;
@@ -37,7 +38,7 @@ export const useStoreProfile = () => {
         }
     }, [person?.id]);
 
-    const getStoreProfileByStoreName = async (storeName: string) => {
+    const getStoreProfileByStoreName = useCallback(async (storeName: string) => {
         if (!storeName) {
             console.log("getStoreProfileByStoreName: storeName es undefined o vacío");
             return null;
@@ -69,7 +70,7 @@ export const useStoreProfile = () => {
             setStoreProfilePublic(null);
             return null;
         }
-    };
+    }, []);
 
     const getStoreProfile = useCallback(async () => {
         if (!person?.id) return;
@@ -189,9 +190,10 @@ export const useStoreProfile = () => {
         }
     }, [person?.id, storeProfile?.id, updateStoreProfile]);
 
-    // Solo ejecutar cuando person esté disponible
+    // Solo ejecutar cuando person esté disponible y no se haya inicializado antes
     useEffect(() => {
-        if (person?.id && !personLoading) {
+        if (person?.id && !personLoading && !isInitialized.current) {
+            isInitialized.current = true;
             getStoreProfile();
         }
     }, [person?.id, personLoading, getStoreProfile]);

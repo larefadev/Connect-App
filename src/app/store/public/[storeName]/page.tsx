@@ -8,28 +8,107 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useStoreProfile } from "@/hooks/StoreProfile/useStoreProfile";
-import { useEffect } from "react";
+import { useStoreConfig } from "@/hooks/StoreProfile/useStoreConfig";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { ProductImage } from "@/components/ui/product-image";
+import { CartWidget } from "@/components/Cart/CartWidget";
+import { AddToCartButton } from "@/components/Cart/AddToCartButton";
 
 export default function PublicStorePage({ params }: { params: Promise<{ storeName: string }> }) {
     const resolvedParams = useParams();
     const storeName = resolvedParams.storeName as string;
     const { getStoreProfileByStoreName, storeProfilePublic, loading, error } = useStoreProfile();
+    const [storeId, setStoreId] = useState<number | null>(null);
+    const isInitialized = useRef(false);
+
+    // Obtener configuración de la tienda
+    const { 
+        productsWithDetails, 
+        loading: configLoading 
+    } = useStoreConfig(storeId);
 
     useEffect(() => {
-        console.log("useEffect ejecutado con storeName:", storeName);
-        if (storeName) {
+        if (storeName && !isInitialized.current) {
+            console.log("useEffect ejecutado con storeName:", storeName);
+            isInitialized.current = true;
             getStoreProfileByStoreName(storeName);
         }
     }, [storeName, getStoreProfileByStoreName]);
 
+    // Obtener el ID de la tienda cuando se cargue el perfil
     useEffect(() => {
-        console.log("storeProfilePublic actualizado:", storeProfilePublic);
-    }, [storeProfilePublic]);
+        if (storeProfilePublic?.id) {
+            console.log('Página tienda: storeProfilePublic.id encontrado:', storeProfilePublic.id);
+            setStoreId(Number(storeProfilePublic.id));
+        }
+    }, [storeProfilePublic?.id]);
 
-    const categories = [
-        "All", "Oil Filters", "Break Pads", "Break Shoes", "Spark Plugs", "Engine Oil", "Suspension", "Lighting"
-    ];
+    // Debug: Log cuando cambie storeId
+    useEffect(() => {
+        console.log('Página tienda: storeId cambiado:', storeId);
+    }, [storeId]);
+
+    // Debug: Log cuando cambien los productos
+    useEffect(() => {
+        console.log('Página tienda: productsWithDetails cambiado:', {
+            count: productsWithDetails.length,
+            products: productsWithDetails.map(p => ({ 
+                sku: p.SKU, 
+                name: p.Nombre,
+                active: p.config?.is_active,
+                category: p.Categoria
+            }))
+        });
+    }, [productsWithDetails]);
+
+    // Debug: Log cuando cambie la configuración
+    useEffect(() => {
+        console.log('Página tienda: configLoading cambiado:', configLoading);
+    }, [configLoading]);
+
+    // Obtener productos activos
+    const getActiveProducts = () => {
+        return productsWithDetails.filter(p => p.config.is_active);
+    };
+
+    // Obtener categorías únicas directamente de los productos activos
+    const getActiveCategories = () => {
+        const activeProducts = getActiveProducts();
+        const categoryCodes = [...new Set(activeProducts.map(p => p.Categoria).filter(Boolean))];
+        
+        return categoryCodes.map(code => ({
+            code,
+            name: code // Usar el código de categoría directamente como nombre
+        }));
+    };
+
+    // Filtrar productos por categoría
+    const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const getFilteredProducts = () => {
+        let filtered = getActiveProducts();
+
+        // Filtro por categoría
+        if (selectedCategory !== 'all') {
+            filtered = filtered.filter(p => p.Categoria === selectedCategory);
+        }
+
+        // Filtro por búsqueda
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filtered = filtered.filter(p => 
+                p.Nombre?.toLowerCase().includes(term) ||
+                p.Marca?.toLowerCase().includes(term) ||
+                p.Categoria?.toLowerCase().includes(term)
+            );
+        }
+
+        return filtered;
+    };
+
+    const filteredProducts = getFilteredProducts();
 
     const getBackgroundImage = () => {
         if (storeProfilePublic?.banner_image) {
@@ -65,83 +144,8 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
         return "";
     };
 
-    const products = [
-        {
-            id: 1,
-            name: "Bosch Premium Ceramic Brake Pads",
-            brand: "Bosch",
-            price: 45.00,
-            originalPrice: 55.00,
-            rating: 4.8,
-            reviews: 127,
-            image: "/images/brake-pads.jpg",
-            isNew: false,
-            discount: 18
-        },
-        {
-            id: 2,
-            name: "Castrol EDGE Engine Oil 5W-30",
-            brand: "Castrol",
-            price: 38.00,
-            originalPrice: 45.00,
-            rating: 4.6,
-            reviews: 89,
-            image: "/images/engine-oil.jpg",
-            isNew: false,
-            discount: 16
-        },
-        {
-            id: 3,
-            name: "Performance Suspension Spring Set",
-            brand: "Performance",
-            price: 120.00,
-            originalPrice: 150.00,
-            rating: 4.9,
-            reviews: 45,
-            image: "/images/suspension-spring.jpg",
-            isNew: true,
-            discount: 20
-        },
-        {
-            id: 4,
-            name: "H4 LED Headlight Bulbs",
-            brand: "LED Pro",
-            price: 25.00,
-            originalPrice: 35.00,
-            rating: 4.7,
-            reviews: 203,
-            image: "/images/headlight-bulbs.jpg",
-            isNew: false,
-            discount: 29
-        },
-        {
-            id: 5,
-            name: "NGK Spark Plugs Set",
-            brand: "NGK",
-            price: 35.00,
-            originalPrice: 42.00,
-            rating: 4.8,
-            reviews: 156,
-            image: "/images/spark-plugs.jpg",
-            isNew: false,
-            discount: 17
-        },
-        {
-            id: 6,
-            name: "Premium Oil Filter",
-            brand: "Premium",
-            price: 18.00,
-            originalPrice: 22.00,
-            rating: 4.5,
-            reviews: 78,
-            image: "/images/oil-filter.jpg",
-            isNew: false,
-            discount: 18
-        }
-    ];
-
     // Mostrar loading mientras se carga
-    if (loading) {
+    if (loading || configLoading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
@@ -164,7 +168,7 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
                     <p className="text-sm text-gray-500">storeProfilePublic: {JSON.stringify(storeProfilePublic)}</p>
                 </div>
             </div>
-        );
+            );
     }
 
     return (
@@ -177,7 +181,9 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
                         <strong>DEBUG:</strong> storeName: {storeName} | 
                         storeProfilePublic: {storeProfilePublic ? 'Cargado' : 'Null'} | 
                         Loading: {loading ? 'Sí' : 'No'} | 
-                        Error: {error || 'Ninguno'}
+                        Error: {error || 'Ninguno'} |
+                        Productos: {productsWithDetails.length} |
+                        Categorías: {getActiveCategories().length}
                     </div>
                 )}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -205,6 +211,8 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
                                 <Phone className="w-4 h-4" />
                                 <span className="text-sm">{storeProfilePublic?.phone || "1 888 235 9826"}</span>
                             </div>
+                            {/* Carrito de Compras */}
+                            {storeId && <CartWidget storeId={storeId} />}
                         </div>
                     </div>
                 </div>
@@ -234,13 +242,15 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
                         <div className="flex-1 relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                             <Input 
-                                placeholder="Search for auto parts..." 
+                                placeholder="Buscar repuestos automotrices..." 
                                 className="pl-10 pr-4 py-3"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
                         <Button variant="outline" className="flex items-center space-x-2">
                             <Filter className="w-4 h-4" />
-                            <span>Filters</span>
+                            <span>Filtros</span>
                         </Button>
                     </div>
                 </div>
@@ -250,13 +260,21 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
             <div className="bg-white border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex space-x-2 overflow-x-auto">
-                        {categories.map((category, index) => (
+                        <Button 
+                            variant={selectedCategory === 'all' ? "default" : "outline"}
+                            className="whitespace-nowrap rounded-full"
+                            onClick={() => setSelectedCategory('all')}
+                        >
+                            Todas ({getActiveProducts().length})
+                        </Button>
+                        {getActiveCategories().map((category) => (
                             <Button 
-                                key={index} 
-                                variant={index === 0 ? "default" : "outline"}
+                                key={category.code} 
+                                variant={selectedCategory === category.code ? "default" : "outline"}
                                 className="whitespace-nowrap rounded-full"
+                                onClick={() => setSelectedCategory(category.code || '')}
                             >
-                                {category}
+                                {category.name}
                             </Button>
                         ))}
                     </div>
@@ -265,54 +283,79 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
 
             {/* Products Grid */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {products.map((product) => (
-                        <Link key={product.id} href={`/store/public/${storeName}/product/${product.id}`}>
-                            <Card className="bg-white shadow-md hover:shadow-lg transition-shadow cursor-pointer">
-                                <CardContent className="p-4">
-                                    <div className="relative mb-4">
-                                        <div className="w-full h-48 bg-gray-200 rounded-lg mb-3"></div>
-                                        {product.isNew && (
-                                            <Badge className="absolute top-2 left-2 bg-orange-500 text-white text-xs">
-                                                New
-                                            </Badge>
-                                        )}
-                                        {product.discount > 0 && (
-                                            <Badge className="absolute top-2 right-2 bg-red-500 text-white text-xs">
-                                                -{product.discount}%
-                                            </Badge>
-                                        )}
-                                        <div className="absolute bottom-2 right-2 flex space-x-1">
-                                            <Button variant="ghost" size="sm" className="p-1 h-auto bg-white/80 hover:bg-white">
-                                                <Heart className="w-4 h-4 text-gray-600" />
-                                            </Button>
-                                            <Button variant="ghost" size="sm" className="p-1 h-auto bg-white/80 hover:bg-white">
-                                                <ShoppingCart className="w-4 h-4 text-gray-600" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <h3 className="font-medium text-gray-900 line-clamp-2">{product.name}</h3>
-                                        <p className="text-sm text-gray-600">Brand: {product.brand}</p>
-                                        <div className="flex items-center space-x-2 mb-2">
-                                            <div className="flex items-center space-x-1">
-                                                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                                <span className="text-sm font-medium">{product.rating}</span>
+                {filteredProducts.length === 0 ? (
+                    <div className="text-center py-12">
+                        <div className="text-gray-400 text-6xl mb-4">🔍</div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron productos</h3>
+                        <p className="text-gray-500">
+                            {searchTerm || selectedCategory !== 'all' 
+                                ? 'Intenta ajustar los filtros de búsqueda' 
+                                : 'Esta tienda aún no tiene productos configurados'
+                            }
+                        </p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {filteredProducts.map((product) => (
+                            <div key={product.SKU} className="relative">
+                                <Link href={`/store/public/${storeName}/product/${product.SKU}`}>
+                                    <Card className="bg-white shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                                        <CardContent className="p-4">
+                                            <div className="relative mb-4">
+                                                <ProductImage
+                                                    src={product.Imagen}
+                                                    alt={product.Nombre || 'Producto'}
+                                                    className="w-full h-48 object-cover rounded-lg mb-3"
+                                                />
+                                                {product.config.is_featured && (
+                                                    <Badge className="absolute top-2 left-2 bg-orange-500 text-white text-xs">
+                                                        Destacado
+                                                    </Badge>
+                                                )}
+                                                <div className="absolute bottom-2 right-2 flex space-x-1">
+                                                    <Button variant="ghost" size="sm" className="p-1 h-auto bg-white/80 hover:bg-white">
+                                                        <Heart className="w-4 h-4 text-gray-600" />
+                                                    </Button>
+                                                </div>
                                             </div>
-                                            <span className="text-sm text-gray-500">({product.reviews})</span>
-                                        </div>
-                                        <div className="flex items-center space-x-3">
-                                            <span className="text-lg font-bold text-gray-900">${product.price.toFixed(2)}</span>
-                                            {product.originalPrice > product.price && (
-                                                <span className="text-sm text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
-                                            )}
-                                        </div>
+                                            <div className="space-y-2">
+                                                <h3 className="font-medium text-gray-900 line-clamp-2">{product.Nombre}</h3>
+                                                <p className="text-sm text-gray-600">Marca: {product.Marca}</p>
+                                                <p className="text-sm text-gray-600">Categoría: {product.Categoria}</p>
+                                                <div className="flex items-center space-x-3">
+                                                    <span className="text-lg font-bold text-gray-900">
+                                                        ${product.config.custom_price?.toFixed(2) || product.Precio?.toFixed(2) || '0.00'}
+                                                    </span>
+                                                    {product.config.custom_price && product.Precio && product.config.custom_price > product.Precio && (
+                                                        <span className="text-sm text-gray-500 line-through">
+                                                            ${product.Precio.toFixed(2)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {product.config.stock_quantity > 0 && (
+                                                    <p className="text-sm text-green-600">
+                                                        Stock: {product.config.stock_quantity} unidades
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
+                                
+                                {/* Botón de Agregar al Carrito - FUERA del Link */}
+                                {storeId && (
+                                    <div className="mt-3 px-4 pb-4">
+                                        <AddToCartButton 
+                                            product={product}
+                                            storeId={storeId}
+                                            className="w-full"
+                                        />
                                     </div>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    ))}
-                </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Footer */}
@@ -341,21 +384,21 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
                             </div>
                         </div>
                         <div>
-                            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
+                            <h4 className="text-lg font-semibold mb-4">Enlaces Rápidos</h4>
                             <ul className="space-y-2 text-gray-400">
-                                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Shipping Info</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Returns</a></li>
+                                <li><a href="#" className="hover:text-white transition-colors">Sobre Nosotros</a></li>
+                                <li><a href="#" className="hover:text-white transition-colors">Contacto</a></li>
+                                <li><a href="#" className="hover:text-white transition-colors">Información de Envío</a></li>
+                                <li><a href="#" className="hover:text-white transition-colors">Devoluciones</a></li>
                             </ul>
                         </div>
                         <div>
-                            <h4 className="text-lg font-semibold mb-4">Customer Service</h4>
+                            <h4 className="text-lg font-semibold mb-4">Servicio al Cliente</h4>
                             <ul className="space-y-2 text-gray-400">
-                                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Track Order</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Warranty</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
+                                <li><a href="#" className="hover:text-white transition-colors">Centro de Ayuda</a></li>
+                                <li><a href="#" className="hover:text-white transition-colors">Rastrear Pedido</a></li>
+                                <li><a href="#" className="hover:text-white transition-colors">Garantía</a></li>
+                                <li><a href="#" className="hover:text-white transition-colors">Soporte</a></li>
                             </ul>
                         </div>
                     </div>

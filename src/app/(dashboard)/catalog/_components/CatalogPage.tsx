@@ -214,7 +214,6 @@ export const CatalogPage = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
             <div className="space-y-2">
-                <h1 className="text-2xl font-bold text-gray-900">Catálogo de Productos</h1>
                 <div className="flex gap-4 text-sm text-gray-600">
                     <span>Total: {products.length} productos</span>
                     <span>•</span>
