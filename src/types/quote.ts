@@ -1,3 +1,4 @@
+// Interfaces para cotizaciones - utilizadas en el sistema de cotizaciones
 export interface ClientQuote {
   id?: string;
   name: string;

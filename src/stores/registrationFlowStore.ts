@@ -52,7 +52,7 @@ export const userRegisterStore = create<RegistrationState>()(
                 storeData: { ...state.storeData, ...data }
             })),
 
-            handleSignIn: async (email, _password) => {
+            handleSignIn: async (email) => {
                 set({ isLoading: true, error: null })
                 try {
                     useAuthStore.getState().login({
@@ -67,7 +67,7 @@ export const userRegisterStore = create<RegistrationState>()(
                         isLoading: false
                     }))
 
-                } catch (error) {
+                } catch {
                     set({
                         error: 'Error al iniciar sesión',
                         isLoading: false
@@ -193,7 +193,7 @@ export const userRegisterStore = create<RegistrationState>()(
                         currentStep: 'store-setup',
                         isLoading: false
                     }))
-                } catch (_error) {
+                } catch {
                     set({
                         error: 'Error al seleccionar plan',
                         isLoading: false
@@ -213,7 +213,7 @@ export const userRegisterStore = create<RegistrationState>()(
                     }))
                     
                     console.log('Configuración de tienda completada, yendo a preview');
-                } catch (_error) {
+                } catch {
                     set({
                         error: 'Error al configurar la tienda',
                         isLoading: false
@@ -226,13 +226,13 @@ export const userRegisterStore = create<RegistrationState>()(
                 try {
                     await new Promise(resolve => setTimeout(resolve, 500))
                     
-                    set(state => ({
+                    set(() => ({
                         currentStep: 'finish',
                         isLoading: false
                     }))
                     
                     console.log('Setup finalizado, yendo a pantalla de éxito');
-                } catch (_error) {
+                } catch {
                     set({
                         error: 'Error al finalizar setup',
                         isLoading: false

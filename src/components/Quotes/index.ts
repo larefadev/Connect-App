@@ -1,3 +1,3 @@
-export { PDFWrapper } from './PDFWrapper';
-export { QuotePDF } from './QuotePDF';
-export { QuotePreviewModal } from './QuotePreviewModal';
+export { default as PDFWrapper } from './PDFWrapper';
+export { default as QuotePDF } from './QuotePDF';
+export { default as QuotePreviewModal } from './QuotePreviewModal';

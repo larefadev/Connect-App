@@ -57,7 +57,7 @@ export interface OrderStore {
   convertCartItemsToOrderItems: (cartItems: CartItem[]) => OrderItem[];
 }
 
-export const useOrderStore = create<OrderStore>((set, get) => ({
+export const useOrderStore = create<OrderStore>((set) => ({
   orders: [],
   currentOrder: null,
 

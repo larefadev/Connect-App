@@ -32,6 +32,10 @@ export const useToast = () => {
     return `toast-${Date.now()}-${toastCount.current}`;
   }, []);
 
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
+
   const showToast = useCallback((
     message: string, 
     type: ToastType = 'info', 
@@ -59,11 +63,7 @@ export const useToast = () => {
     }
 
     return id;
-  }, [generateId]);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  }, []);
+  }, [generateId, removeToast]);
 
   const removeAllToasts = useCallback(() => {
     setToasts([]);
