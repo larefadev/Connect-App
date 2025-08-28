@@ -34,7 +34,6 @@ export const ConfigProfile = () => {
         try {
             await navigator.clipboard.writeText(storeUrl);
             // Aquí podrías mostrar un toast de confirmación
-            console.log('URL copiada al portapapeles');
         } catch (err) {
             console.error('Error al copiar URL:', err);
         }

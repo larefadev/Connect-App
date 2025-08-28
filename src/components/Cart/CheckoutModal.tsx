@@ -70,18 +70,11 @@ export const CheckoutModal = ({ isOpen, onClose, storeId }: CheckoutModalProps) 
       return;
     }
 
-    console.log('Iniciando creación de pedido...');
-    console.log('Payment method:', paymentMethod);
-    console.log('Customer info:', customerInfo);
-    console.log('Store ID:', storeId);
     
     setIsProcessing(true);
     
     try {
-      console.log('Llamando a createOrderFromCart...');
       const order = await createOrderFromCart(paymentMethod, customerInfo.deliveryNotes);
-      console.log('Pedido creado exitosamente:', order);
-      
       showToast(
         `Pedido #${order.order_number} creado exitosamente`,
         'success',
@@ -90,7 +83,6 @@ export const CheckoutModal = ({ isOpen, onClose, storeId }: CheckoutModalProps) 
       
       setStep('confirmation');
     } catch (error) {
-      console.error('Error al crear el pedido:', error);
       showToast(
         error instanceof Error ? error.message : 'Error al crear el pedido',
         'error',

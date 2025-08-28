@@ -30,7 +30,6 @@ export const usePerson = () => {
             }
             
             setPerson(data);
-            console.log("Person data ====>", data);
         } catch (err) {
             setError('Error al obtener datos de la persona');
             console.error('Error en getPerson:', err);
@@ -59,7 +58,6 @@ export const usePerson = () => {
             }
             
             setPerson(data);
-            console.log("Person updated ====>", data);
             return { success: true, data };
         } catch (err) {
             setError('Error al actualizar datos de la persona');
@@ -116,7 +114,6 @@ export const usePerson = () => {
             }
             
             setPerson(data);
-            console.log("Profile image updated ====>", data);
             return { success: true, data, imageUrl };
         } catch (err) {
             setError('Error al subir la imagen de perfil');

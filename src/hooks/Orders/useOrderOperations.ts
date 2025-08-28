@@ -44,21 +44,14 @@ export const useOrderOperations = () => {
 
   // Crear pedido en la base de datos
   const createOrder = async (orderData: CreateOrderData): Promise<Order> => {
-    console.log('createOrder llamado con:', orderData);
-    console.log('Supabase config:', { 
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY 
-    });
     setLoading(true);
     setError(null);
 
     try {
       const orderNumber = generateOrderNumber();
       const now = new Date().toISOString();
-      console.log('Número de pedido generado:', orderNumber);
 
       // 1. Crear el pedido principal
-      console.log('Insertando pedido en orders_test...');
       const { data: orderResult, error: orderError } = await supabase
         .from('orders_test')
         .insert({
@@ -90,23 +83,16 @@ export const useOrderOperations = () => {
         .single();
 
       if (orderError) {
-        console.error('Error al crear el pedido:', orderError);
         throw new Error(`Error al crear el pedido: ${orderError.message}`);
       }
 
       if (!orderResult) {
-        console.error('No se pudo crear el pedido - resultado vacío');
         throw new Error('No se pudo crear el pedido');
       }
 
-      console.log('Pedido creado exitosamente:', orderResult);
-
       // 2. Crear los items del pedido
-      console.log('Items del carrito recibidos:', orderData.items);
-      console.log('Datos del primer item:', orderData.items[0]);
       
       const orderItems = orderData.items.map(item => {
-        console.log('Procesando item:', item);
         const orderItem = {
           order_id: orderResult.id,
           product_sku: item.SKU,
@@ -117,12 +103,9 @@ export const useOrderOperations = () => {
           quantity: item.quantity,
           total_price: item.totalPrice,
         };
-        console.log('Order item creado:', orderItem);
         return orderItem;
       });
       
-      console.log('Todos los order items:', orderItems);
-
       const { error: itemsError } = await supabase
         .from('order_items_test')
         .insert(orderItems);

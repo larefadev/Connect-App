@@ -193,8 +193,6 @@ const SetUp = () => {
 
             // Actualizar el form data con la URL
             setFormData({...formData, [type]: publicUrlData.publicUrl})
-
-            console.log(`${type} uploaded successfully:`, publicUrlData.publicUrl)
             return publicUrlData.publicUrl
         } catch (error: unknown) {
             console.error(`Error uploading ${type}:`, error)
@@ -284,13 +282,6 @@ const SetUp = () => {
                 .select();
 
             if (storeError) throw storeError;
-
-            console.log('Store setup completed successfully:', {
-                person: personData,
-                address: addressData,
-                profile: profileData,
-                store: storeData
-            });
             
             alert('Configuración de la tienda completada exitosamente!');
             

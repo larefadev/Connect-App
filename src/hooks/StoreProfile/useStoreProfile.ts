@@ -40,9 +40,9 @@ export const useStoreProfile = () => {
 
     const getStoreProfileByStoreName = useCallback(async (storeName: string) => {
         if (!storeName) {
-            console.log("getStoreProfileByStoreName: storeName es undefined o vacío");
+            
             return null;
-        }
+        }       
         
         try {
             const query = supabase
@@ -50,22 +50,22 @@ export const useStoreProfile = () => {
                 .select('*')
                 .eq('name', storeName);
             
-            console.log("getStoreProfileByStoreName: Query construida:", query);
+            
             
             const { data, error: profileError } = await query.single();
                 
             if (profileError) {
-                console.error("Error en getStoreProfileByStoreName:", profileError);
+                
                 setError(`Error al obtener perfil de tienda: ${profileError.message}`);
                 setStoreProfilePublic(null);
                 return null;
             }
             
-            console.log("getStoreProfileByStoreName: Perfil encontrado:", data);
+            
             setStoreProfilePublic(data);
             return data;
         } catch (err) {
-            console.error("Error inesperado en getStoreProfileByStoreName:", err);
+            
             setError('Error inesperado al obtener perfil de tienda');
             setStoreProfilePublic(null);
             return null;
@@ -96,10 +96,10 @@ export const useStoreProfile = () => {
             }
             
             setStoreProfile(data);
-            console.log("Store Profile obtenido:", data);
+            
         } catch (err) {
             setError('Error inesperado al obtener perfil de tienda');
-            console.error('Error en getStoreProfile:', err);
+            
         } finally {
             setLoading(false);
         }
@@ -125,11 +125,11 @@ export const useStoreProfile = () => {
             }
             
             setStoreProfile(data);
-            console.log("Store Profile actualizado:", data);
+            
             return { success: true, data };
         } catch (err) {
             setError('Error al actualizar perfil de tienda');
-            console.error('Error en updateStoreProfile:', err);
+            
             return { success: false, error: err };
         } finally {
             setUpdating(false);
@@ -176,14 +176,14 @@ export const useStoreProfile = () => {
             const result = await updateStoreProfile(updateData);
             
             if (result?.success) {
-                console.log(`${imageType} actualizado:`, imageUrl);
+                
                 return { success: true, data: result.data, imageUrl };
             } else {
                 return { success: false, error: result?.error };
             }
         } catch (err) {
             setError(`Error al subir ${imageType}`);
-            console.error(`Error en uploadStoreImage (${imageType}):`, err);
+                
             return { success: false, error: err };
         } finally {
             setUploadingImage(false);

@@ -11,11 +11,12 @@ import { useProducts } from "@/hooks/Products/useProducts";
 import { useEffect, useState } from "react";
 import { AddProductModal } from "./AddProductModal";
 import { ProductImage } from "@/components/ui/product-image";
+import { useToastContext } from "@/components/providers/ToastProvider";
 
 export const StorePage = () => {
     const { storeProfile, store, loading } = useStoreProfile();
     const storeId = storeProfile?.id ? Number(storeProfile.id) : null;
-    
+    const { success: showSuccess, error: showError, info: showInfo } = useToastContext();
     const { 
         productsWithDetails, 
         loading: configLoading,
@@ -30,16 +31,7 @@ export const StorePage = () => {
     const [selectedTab, setSelectedTab] = useState<'all' | 'available' | 'unavailable'>('all');
     const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
     
-    // Log para debugging
-    useEffect(() => {
-        console.log('StorePage - Estado actual:', {
-            storeId,
-            storeProfile: storeProfile?.name,
-            productsWithDetails: productsWithDetails.length,
-            configLoading,
-            loading
-        });
-    }, [storeId, storeProfile?.name, productsWithDetails.length, configLoading, loading]);
+
 
     // Obtener la URL base de manera segura en el cliente
     useEffect(() => {
@@ -52,16 +44,6 @@ export const StorePage = () => {
     const unavailableProducts = totalProducts - availableProducts;
     const featuredProducts = productsWithDetails.filter(p => p.config.is_active && p.config.is_featured).length;
 
-    // Log para debugging de productos
-    useEffect(() => {
-        console.log('StorePage - Productos cargados:', {
-            totalProducts,
-            availableProducts,
-            unavailableProducts,
-            featuredProducts,
-            productsWithDetails: productsWithDetails.map(p => ({ SKU: p.SKU, is_active: p.config.is_active }))
-        });
-    }, [totalProducts, availableProducts, unavailableProducts, featuredProducts, productsWithDetails]);
 
     const stats = [
         { icon: ShoppingBag, label: "Total de Productos de la Tienda", value: totalProducts.toString(), color: "text-purple-600" },
@@ -88,7 +70,7 @@ export const StorePage = () => {
     const handleAddProduct = async (productSku: string) => {
         const success = await addProductToStore(productSku);
         if (success) {
-            console.log('Producto agregado exitosamente');
+            showSuccess('Producto agregado exitosamente');
         }
     };
 
@@ -96,7 +78,7 @@ export const StorePage = () => {
     const handleRemoveProduct = async (productSku: string) => {
         const success = await removeProductFromStore(productSku);
         if (success) {
-            console.log('Producto removido exitosamente');
+            showSuccess('Producto removido exitosamente');
         }
     };
 
@@ -104,7 +86,7 @@ export const StorePage = () => {
     const handleToggleProductActive = async (productSku: string, isActive: boolean) => {
         const success = await toggleProductActive(productSku, isActive);
         if (success) {
-            console.log('Estado del producto cambiado exitosamente');
+            showSuccess('Estado del producto cambiado exitosamente');
         }
     };
 
@@ -112,7 +94,7 @@ export const StorePage = () => {
     const handleToggleProductFeatured = async (productSku: string, isFeatured: boolean) => {
         const success = await toggleProductFeatured(productSku, isFeatured);
         if (success) {
-            console.log('Estado destacado del producto cambiado exitosamente');
+            showSuccess('Estado destacado del producto cambiado exitosamente');
         }
     };
 

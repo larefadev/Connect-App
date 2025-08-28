@@ -52,15 +52,13 @@ export const useOrders = (storeId?: number) => {
   // Cargar pedidos cuando cambie el storeId - SOLO UNA VEZ
   useEffect(() => {
     if (storeId) {
-      console.log('useOrders useEffect - cargando pedidos para storeId:', storeId);
+    
       getOrdersByStore(storeId);
     }
   }, [storeId]); // Removido getOrdersByStore de las dependencias
 
   // Crear un nuevo pedido desde el carrito
   const createOrderFromCart = useCallback(async (paymentMethod: string, notes?: string): Promise<Order> => {
-    console.log('createOrderFromCart llamado con:', { paymentMethod, notes, storeId, cartItems: cartItems.length });
-    
     if (!storeId) {
       console.error('ID de tienda no disponible');
       throw new Error('ID de tienda no disponible');
@@ -74,10 +72,7 @@ export const useOrders = (storeId?: number) => {
     if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
       console.error('Información del cliente incompleta:', customerInfo);
       throw new Error('Información del cliente incompleta');
-    }
-
-    console.log('Cart items antes de convertir:', cartItems);
-    
+    }    
     const orderData = {
       store_id: storeId,
       customer_name: customerInfo.name,
@@ -102,12 +97,10 @@ export const useOrders = (storeId?: number) => {
       items: cartItems,
     };
     
-    console.log('Order data completo:', orderData);
-
+    
     try {
-      console.log('Llamando a createOrderInDB con datos:', orderData);
+
       const newOrder = await createOrderInDB(orderData);
-      console.log('Pedido creado en DB:', newOrder);
       
       // Agregar el pedido al store local
       addOrder(newOrder);

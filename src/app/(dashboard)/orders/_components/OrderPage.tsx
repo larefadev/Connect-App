@@ -51,12 +51,6 @@ export const OrdersPage = () => {
         getOrdersByStore
     } = useOrders(storeId || undefined);
 
-    // Debug logs
-    console.log('OrdersPage - storeId:', storeId);
-    console.log('OrdersPage - orders:', orders);
-    console.log('OrdersPage - orders.length:', orders?.length);
-    console.log('OrdersPage - loading:', loading);
-    console.log('OrdersPage - error:', error);
 
     // Por ahora usamos un storeId falso para demostración
     useEffect(() => {

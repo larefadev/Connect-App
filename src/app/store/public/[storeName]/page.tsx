@@ -30,7 +30,6 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
 
     useEffect(() => {
         if (storeName && !isInitialized.current) {
-            console.log("useEffect ejecutado con storeName:", storeName);
             isInitialized.current = true;
             getStoreProfileByStoreName(storeName);
         }
@@ -39,33 +38,10 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
     // Obtener el ID de la tienda cuando se cargue el perfil
     useEffect(() => {
         if (storeProfilePublic?.id) {
-            console.log('Página tienda: storeProfilePublic.id encontrado:', storeProfilePublic.id);
             setStoreId(Number(storeProfilePublic.id));
         }
     }, [storeProfilePublic?.id]);
 
-    // Debug: Log cuando cambie storeId
-    useEffect(() => {
-        console.log('Página tienda: storeId cambiado:', storeId);
-    }, [storeId]);
-
-    // Debug: Log cuando cambien los productos
-    useEffect(() => {
-        console.log('Página tienda: productsWithDetails cambiado:', {
-            count: productsWithDetails.length,
-            products: productsWithDetails.map(p => ({ 
-                sku: p.SKU, 
-                name: p.Nombre,
-                active: p.config?.is_active,
-                category: p.Categoria
-            }))
-        });
-    }, [productsWithDetails]);
-
-    // Debug: Log cuando cambie la configuración
-    useEffect(() => {
-        console.log('Página tienda: configLoading cambiado:', configLoading);
-    }, [configLoading]);
 
     // Obtener productos activos
     const getActiveProducts = () => {
@@ -118,7 +94,6 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
     };
 
     const getBackgroundStyle = () => {
-        console.log("getBackgroundStyle: storeProfilePublic.banner_url:", storeProfilePublic?.banner_image);
         if (storeProfilePublic?.banner_image) {
             return {
                 backgroundImage: `url(${storeProfilePublic.banner_image})`,

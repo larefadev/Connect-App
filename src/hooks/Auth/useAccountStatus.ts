@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import supabase from '@/lib/Supabase';
 import { useRouter } from 'next/navigation';
+import { useToastContext } from '@/components/providers/ToastProvider';
 
 export const useAccountStatus = () => {
   const [isValidating, setIsValidating] = useState(false);
   const { isAuthenticated, user, logout } = useAuthStore();
   const router = useRouter();
-
+  const { error: showError } = useToastContext();
   // Función para validar el status de la cuenta
   const validateAccountStatus = async (email: string) => {
     try {
@@ -18,13 +19,13 @@ export const useAccountStatus = () => {
         .single();
 
       if (personError || !personData) {
-        console.error('Error al validar status de cuenta:', personError);
+        showError('Error al validar status de cuenta');
         return false;
       }
 
       return personData.status;
     } catch (error) {
-      console.error('Error al validar status de cuenta:', error);
+      showError('Error al validar status de cuenta');
       return false;
     }
   };
@@ -45,7 +46,7 @@ export const useAccountStatus = () => {
         const isActive = await validateAccountStatus(user.email!);
         
         if (!isActive) {
-          console.log('Cuenta inactiva detectada, expulsando usuario...');
+          
           await forceLogout();
         }
         
@@ -64,7 +65,7 @@ export const useAccountStatus = () => {
       const isActive = await validateAccountStatus(user.email!);
       
       if (!isActive) {
-        console.log('Cuenta inactiva detectada en validación periódica, expulsando usuario...');
+        showError('Cuenta inactiva detectada en validación periódica, expulsando usuario...');
         await forceLogout();
       }
     }, 5 * 60 * 1000); // 5 minutos

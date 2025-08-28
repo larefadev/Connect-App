@@ -10,6 +10,7 @@ import { useProducts } from '@/hooks/Products/useProducts';
 import { useStoreConfig } from '@/hooks/StoreProfile/useStoreConfig';
 import { Product } from '@/types/ecomerce';
 import { ProductImage } from '@/components/ui/product-image';
+import { useToastContext } from '@/components/providers/ToastProvider';
 
 interface AddProductModalProps {
     isOpen: boolean;
@@ -24,14 +25,13 @@ export const AddProductModal = ({ isOpen, onClose, storeId }: AddProductModalPro
     const [currentPage, setCurrentPage] = useState(1);
     const [productsPerPage, setProductsPerPage] = useState(20); // Mostrar 20 productos por página
     const [isChangingPage, setIsChangingPage] = useState(false);
-    const { products, categories, loading } = useProducts();
+    const { products, categories, loading } = useProducts();    
     const { addProductToStore, getAllStoreProducts } = useStoreConfig(storeId);
-
+    const { success: showSuccess, error: showError, info: showInfo } = useToastContext();
     // Evitar llamadas innecesarias al hook
     useEffect(() => {
         if (isOpen && storeId) {
-            // Solo cargar datos cuando el modal esté abierto
-            console.log('Modal abierto, cargando datos para storeId:', storeId);
+            showInfo('Modal abierto, cargando datos para storeId:', storeId);
         }
     }, [isOpen, storeId]);
 
@@ -86,8 +86,6 @@ export const AddProductModal = ({ isOpen, onClose, storeId }: AddProductModalPro
     // Agregar producto a la tienda
     const handleAddProduct = async (productSku: string) => {
         try {
-            console.log('Intentando agregar producto:', productSku);
-            console.log('Productos ya en la tienda:', storeProducts.map(sp => sp.product_sku));
             
             const success = await addProductToStore(productSku);
             if (success) {
@@ -96,9 +94,9 @@ export const AddProductModal = ({ isOpen, onClose, storeId }: AddProductModalPro
                     newSet.add(productSku);
                     return newSet;
                 });
-                console.log('Producto agregado exitosamente');
+                showSuccess('Producto agregado exitosamente');
             } else {
-                console.log('Error al agregar producto');
+                showError('Error al agregar producto');
             }
         } catch (error) {
             console.error('Error en handleAddProduct:', error);

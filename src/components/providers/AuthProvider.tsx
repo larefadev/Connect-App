@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useEffect } from 'react';
 import supabase from '@/lib/Supabase';
 import { useRouter, usePathname } from 'next/navigation';
+import { useToast } from '@/hooks';
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -13,7 +14,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const { login, logout } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
-
+  const { error: showError } = useToast();
   // Función para validar el status de la cuenta
   const validateAccountStatus = async (userId: string, email: string) => {
     try {
@@ -24,13 +25,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         .single();
 
       if (personError || !personData) {
-        console.error('Error al validar status de cuenta:', personError);
+        showError('Error al validar status de cuenta');
         return false;
       }
 
       return personData.status;
     } catch (error) {
-      console.error('Error al validar status de cuenta:', error);
+      showError('Error al validar status de cuenta');
       return false;
     }
   };
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             const isActive = await validateAccountStatus(session.user.id, session.user.email!);
             
             if (!isActive) {
-              console.log('Cuenta inactiva detectada, expulsando usuario...');
+              showError('Cuenta inactiva detectada, expulsando usuario...');
               await forceLogout();
               return;
             }
@@ -66,7 +67,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           });
         }
       } catch (error) {
-        console.error('Error al verificar sesión:', error);
+        showError('Error al verificar sesión');
       }
     })();
   }, [login, pathname]);
@@ -81,7 +82,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const isActive = await validateAccountStatus(session.user.id, session.user.email!);
           
           if (!isActive) {
-            console.log('Cuenta inactiva detectada, expulsando usuario...');
+            showError('Cuenta inactiva detectada, expulsando usuario...');
             await forceLogout();
             return;
           }

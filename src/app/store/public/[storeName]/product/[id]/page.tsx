@@ -12,6 +12,8 @@ import { useStoreConfig } from "@/hooks/StoreProfile/useStoreConfig";
 import { useProducts } from "@/hooks/Products/useProducts";
 import { useEffect, useState } from "react";
 import { ProductImage } from "@/components/ui/product-image";
+import { useToastContext } from "@/components/providers/ToastProvider";
+
 
 export default function ProductDetailPage({ params }: { params: Promise<{ storeName: string; id: string }> }) {
     const resolvedParams = useParams();
@@ -32,18 +34,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
     // Obtener todos los productos para buscar el producto específico
     const { products: allProducts, loading: productsLoading } = useProducts();
 
-    // Log para debugging
-    useEffect(() => {
-        console.log('Estado actual:', {
-            storeId,
-            storeName,
-            productSku,
-            productsWithDetails: productsWithDetails.length,
-            allProducts: allProducts.length,
-            configLoading,
-            productsLoading
-        });
-    }, [storeId, storeName, productSku, productsWithDetails.length, allProducts.length, configLoading, productsLoading]);
+
 
     // Cargar perfil de la tienda
     useEffect(() => {
@@ -55,7 +46,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
     // Obtener el ID de la tienda cuando se cargue el perfil
     useEffect(() => {
         if (storeProfilePublic?.id) {
-            console.log('Estableciendo storeId:', storeProfilePublic.id);
             setStoreId(Number(storeProfilePublic.id));
         } else {
             console.log('storeProfilePublic no tiene ID:', storeProfilePublic);
@@ -64,30 +54,22 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
 
     // Buscar el producto específico
     useEffect(() => {
-        if (productSku && allProducts.length > 0) {
-            console.log('Buscando producto:', productSku);
-            console.log('Productos disponibles:', allProducts.length);
-            console.log('Configuración de tienda cargada:', productsWithDetails.length);
-            
+        if (productSku && allProducts.length > 0) {            
             const foundProduct = allProducts.find(p => p.SKU === productSku);
             if (foundProduct) {
-                console.log('Producto encontrado:', foundProduct);
                 
                 // Buscar la configuración de la tienda para este producto
                 const storeConfig = productsWithDetails.find(p => p.SKU === productSku);
                 
                 if (storeConfig) {
-                    console.log('Configuración de tienda encontrada:', storeConfig);
                     // Combinar información del producto con la configuración de la tienda
                     setProduct({
                         ...foundProduct,
                         config: storeConfig
                     });
                 } else {
-                    console.log('No hay configuración de tienda para este producto');
                     // Si no hay configuración de tienda, verificar si la tienda tiene productos configurados
                     if (productsWithDetails.length === 0) {
-                        console.log('La tienda no tiene productos configurados, mostrando como disponible');
                         // La tienda aún no tiene productos configurados, mostrar el producto como disponible
                         setProduct({
                             ...foundProduct,
@@ -100,7 +82,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
                             }
                         });
                     } else {
-                        console.log('La tienda tiene productos configurados pero este no está incluido');
                         // La tienda tiene productos configurados pero este no está incluido
                         setProduct({
                             ...foundProduct,
@@ -116,7 +97,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
                 }
                 setLoading(false);
             } else {
-                console.log('Producto no encontrado en la base de datos');
                 setError('Producto no encontrado');
                 setLoading(false);
             }
@@ -125,7 +105,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
 
     // Mostrar loading mientras se carga
     if (loading || profileLoading || configLoading || productsLoading || !storeId) {
-        console.log('Estado de carga:', { loading, profileLoading, configLoading, productsLoading, storeId });
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
@@ -147,7 +126,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
 
     // Mostrar error si algo salió mal
     if (error || !product) {
-        console.log('Error o producto no encontrado:', { error, product });
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
@@ -174,15 +152,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
     // Solo verificamos si hay stock disponible para mostrar la interfaz apropiada
     const hasStock = product.config?.stock_quantity > 0;
 
-    // Log para debugging del producto final
-    console.log('Producto a mostrar:', {
-        SKU: product.SKU,
-        Nombre: product.Nombre,
-        is_active: product.config?.is_active,
-        stock_quantity: product.config?.stock_quantity,
-        hasStock,
-        config: product.config
-    });
+
 
     // Calcular precio final
     const finalPrice = product.config.custom_price || product.Precio || 0;

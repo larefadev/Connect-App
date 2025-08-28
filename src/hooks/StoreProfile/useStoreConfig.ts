@@ -38,7 +38,7 @@ export const useStoreConfig = (storeId: number | null): UseStoreConfigReturn => 
         if (!storeId) return;
         
         try {
-            console.log('useStoreConfig: Cargando productos para storeId:', storeId);
+            
             const { data, error: supabaseError } = await supabase
                 .from('store_products_config_test')
                 .select('*')
@@ -47,22 +47,14 @@ export const useStoreConfig = (storeId: number | null): UseStoreConfigReturn => 
 
             if (supabaseError) throw supabaseError;
             
-            console.log('useStoreConfig: Productos cargados:', data);
             setProducts(data || []);
         } catch (err) {
-            console.error('useStoreConfig: Error al cargar productos de la tienda:', err);
         }
     }, [storeId]);
 
     // Cargar detalles completos de productos - VERSIÓN CORREGIDA
     const loadDetailedData = useCallback(async () => {
         if (!storeId) return;
-        
-        console.log('loadDetailedData: Iniciando carga con:', {
-            storeId,
-            productsCount: products.length,
-            productSkus: products.map(p => p.product_sku)
-        });
         
         setLoading(true);
         setError(null);
@@ -72,9 +64,7 @@ export const useStoreConfig = (storeId: number | null): UseStoreConfigReturn => 
 
             // Cargar productos solo si existen
             if (products.length > 0) {
-                console.log('loadDetailedData: Cargando productos...');
                 const productSkus = products.map(p => p.product_sku);
-                console.log('loadDetailedData: SKUs a buscar:', productSkus);
                 
                 const { data: productsData, error: productsError } = await supabase
                     .from('products_test')
@@ -86,18 +76,15 @@ export const useStoreConfig = (storeId: number | null): UseStoreConfigReturn => 
                     throw productsError;
                 }
 
-                console.log('loadDetailedData: Productos obtenidos de BD:', productsData);
                 
                 // Verificar que se encontraron todos los productos
                 const foundSkus = (productsData || []).map(p => p.SKU);
                 const missingSkus = productSkus.filter(sku => !foundSkus.includes(sku));
                 if (missingSkus.length > 0) {
-                    console.warn('loadDetailedData: Productos no encontrados:', missingSkus);
                 }
                 
                 productsWithConfig = (productsData || []).map(product => {
                     const config = products.find(p => p.product_sku === product.SKU);
-                    console.log('loadDetailedData: Combinando producto:', product.SKU, 'con config:', config);
                     return {
                         ...product,
                         config: config!
@@ -105,14 +92,9 @@ export const useStoreConfig = (storeId: number | null): UseStoreConfigReturn => 
                 });
             }
 
-            console.log('loadDetailedData: Resultado final:', {
-                productsWithConfig: productsWithConfig.length
-            });
-
             setProductsWithDetails(productsWithConfig);
             
         } catch (err) {
-            console.error('loadDetailedData: Error general:', err);
             setError(err instanceof Error ? err.message : 'Error al cargar datos detallados');
         } finally {
             setLoading(false);
@@ -305,7 +287,6 @@ export const useStoreConfig = (storeId: number | null): UseStoreConfigReturn => 
         try {
             // Aquí implementarías la lógica para agregar una categoría a la tienda
             // Por ahora retornamos true para permitir el build
-            console.log(`Agregando categoría ${categoryCode} a la tienda ${storeId}`);
             return true;
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error al agregar categoría a la tienda');
@@ -327,7 +308,6 @@ export const useStoreConfig = (storeId: number | null): UseStoreConfigReturn => 
             
             return data || [];
         } catch (err) {
-            console.error('Error al obtener productos de la tienda:', err);
             return [];
         }
     }, [storeId, products]);
@@ -350,12 +330,11 @@ export const useStoreConfig = (storeId: number | null): UseStoreConfigReturn => 
     // Cargar datos cuando cambie el storeId
     useEffect(() => {
         if (storeId) {
-            console.log('useStoreConfig: storeId cambiado, cargando datos...', storeId);
             setProducts([]);
             setProductsWithDetails([]);
             loadStoreProducts();
         } else {
-            console.log('useStoreConfig: storeId es null, limpiando datos');
+
             setProducts([]);
             setProductsWithDetails([]);
         }
@@ -364,20 +343,11 @@ export const useStoreConfig = (storeId: number | null): UseStoreConfigReturn => 
     // VERSIÓN CORREGIDA - Cargar datos detallados cuando cambien las configuraciones
     useEffect(() => {
         const shouldLoadDetails = storeId && (products.length > 0);
-        
-        console.log('useStoreConfig: Evaluando carga de datos detallados:', {
-            storeId,
-            productsCount: products.length,
-            shouldLoadDetails,
-            currentProductsWithDetails: productsWithDetails.length
-        });
-
         if (shouldLoadDetails) {
-            console.log('useStoreConfig: Ejecutando loadDetailedData...');
             loadDetailedData();
         } else if (storeId) {
             // Limpiar arrays si no hay datos para cargar pero sí hay storeId
-            console.log('useStoreConfig: Limpiando arrays de productos...');
+                
             setProductsWithDetails([]);
             setLoading(false);
         }

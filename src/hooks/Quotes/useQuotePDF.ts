@@ -4,10 +4,6 @@ import { ProductQuote } from '@/types/quote';
 export const useQuotePDF = () => {
   const generateAndDownloadPDF = useCallback(async (quote: ProductQuote) => {
     try {
-      // Por ahora, solo simulamos la generación del PDF
-      // TODO: Implementar generación real de PDF cuando se resuelvan los problemas de tipos
-      console.log('Generando PDF para cotización:', quote.quote_number);
-      
       // Crear un PDF simple como placeholder
       const pdfContent = `
         Cotización: ${quote.quote_number}
@@ -43,10 +39,7 @@ export const useQuotePDF = () => {
   }, []);
 
   const generatePDFBlob = useCallback(async (quote: ProductQuote): Promise<Blob | null> => {
-    try {
-      // Por ahora, solo simulamos la generación del PDF
-      console.log('Generando PDF blob para cotización:', quote.quote_number);
-      
+    try {      
       const pdfContent = `
         Cotización: ${quote.quote_number}
         Cliente: ${quote.client?.name || 'N/A'}

@@ -211,8 +211,6 @@ export const userRegisterStore = create<RegistrationState>()(
                         currentStep: 'store-preview',
                         isLoading: false
                     }))
-                    
-                    console.log('Configuración de tienda completada, yendo a preview');
                 } catch {
                     set({
                         error: 'Error al configurar la tienda',
@@ -230,8 +228,6 @@ export const userRegisterStore = create<RegistrationState>()(
                         currentStep: 'finish',
                         isLoading: false
                     }))
-                    
-                    console.log('Setup finalizado, yendo a pantalla de éxito');
                 } catch {
                     set({
                         error: 'Error al finalizar setup',
@@ -250,7 +246,6 @@ export const userRegisterStore = create<RegistrationState>()(
                     error: null,
                     isLoading: false
                 });
-                console.log('Datos del flujo de registro limpiados exitosamente');
             },
 
             canProceedToNext: () => {
