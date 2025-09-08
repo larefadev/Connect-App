@@ -31,7 +31,7 @@ export const ProductImage = ({
     }
 
     return (
-        <>
+        <div className="relative">
             <img 
                 src={src} 
                 alt={alt} 
@@ -50,6 +50,6 @@ export const ProductImage = ({
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 };

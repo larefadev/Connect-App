@@ -171,13 +171,13 @@ export const ConfigProfile = () => {
                             </div>
 
                             {/* Botón de editar */}
-                            <button
+                           { /** <button
                                 onClick={handleEditSetup}
                                 className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
                             >
                                 <Edit3 className="w-4 h-4" />
                                 Editar
-                            </button>
+                            </button>**/}
                         </div>
 
                         {/* Características del plan */}

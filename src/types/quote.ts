@@ -17,6 +17,7 @@ export interface CompanyQuote {
   address?: string;
   created_at?: string;
   updated_at?: string;
+  store_id?:string | number
 }
 
 export interface QuoteItem {

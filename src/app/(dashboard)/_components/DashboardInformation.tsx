@@ -3,20 +3,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProducts } from "@/hooks/Products/useProducts";
 import { Package, Tag, TrendingUp, Users } from "lucide-react";
-import React from "react";
+import { useMemo } from "react";
 
 export const DashboardInformation = () => {
     const { products, categories, loading } = useProducts();
 
-    // Calcular estadísticas básicas
-    const stats = {
-        totalProducts: products.length,
-        totalCategories: categories.length,
-        averagePrice: products.length > 0 
-            ? products.reduce((sum, p) => sum + (p.Precio || 0), 0) / products.length 
-            : 0,
-        productsWithImages: products.filter(p => p.Imagen).length
-    };
+    // Calcular estadísticas básicas con useMemo para optimizar rendimiento
+    const stats = useMemo(() => {
+        return {
+            totalProducts: products.length,
+            totalCategories: categories.length,
+            averagePrice: products.length > 0 
+                ? products.reduce((sum, p) => sum + (p.Precio || 0), 0) / products.length 
+                : 0,
+            productsWithImages: products.filter(p => p.Imagen).length
+        };
+    }, [products, categories]);
 
     if (loading) {
         return (
@@ -110,37 +112,6 @@ export const DashboardInformation = () => {
                                 <Users className="w-8 h-8 text-orange-600" />
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Información Adicional */}
-            <div className="grid grid-cols-1 gap-6">
-                {/* Productos por Categoría */}
-                <Card className="hover:shadow-lg transition-all duration-200">
-                    <CardHeader>
-                        <CardTitle className="text-lg text-gray-800">Productos por Categoría</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {categories.length > 0 ? (
-                            <div className="space-y-3">
-                                {categories.slice(0, 5).map((category) => {
-                                    const productCount = products.filter(p => p.Categoria === category.Categoria).length;
-                                    return (
-                                        <div key={category.Codigo} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                            <span className="font-medium text-gray-700">
-                                                {category.Nombre || category.Categoria || 'Sin nombre'}
-                                            </span>
-                                            <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded-full">
-                                                {productCount} productos
-                                            </span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <p className="text-gray-500 text-center py-4">No hay categorías disponibles</p>
-                        )}
                     </CardContent>
                 </Card>
             </div>

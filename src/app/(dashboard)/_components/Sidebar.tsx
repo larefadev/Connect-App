@@ -13,7 +13,8 @@ import {
     Store,
     User,
     LogOut,
-    FileText
+    FileText,
+    ShoppingCart
 } from "lucide-react";
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
@@ -51,17 +52,18 @@ export const Sidebar = (props: SidebarProps) => {
     const menuItems: MenuItemType[] = [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Panel de control', badge: null, path: '/dashboard' },
         { id: 'catalog', icon: Package, label: 'Catálogo de productos', badge: null, path: '/catalog' },
-        //{ id: 'cart', icon: ShoppingCart, label: 'My cart', badge: cartItems.length, path: '/cart' },
+        { id: 'cart', icon: ShoppingCart, label: 'Mi carrito', badge: null, path: '/cart' },
         { id: 'orders', icon: FileText, label: 'Pedidos', badge: null, path: '/orders' },
         //{ id: 'wallet', icon: Wallet, label: 'Wallet', badge: null, path: '/wallet' },
         //{ id: 'invoice', icon: FileText, label: 'invoice', badge: null, path: '/invoice' },
-        { id: 'quotation', icon: MessageSquare, label: 'Cotizaciones', badge: null, path: '/quotation' }
+        //{ id: 'quotation', icon: MessageSquare, label: 'Cotizaciones', badge: null, path: '/quotation' }
     ];
 
     const toolsItems: MenuItemType[] = [
         { id: 'store', icon: Store, label: 'Mi tienda', badge: null, path: '/store' },
         //{ id: 'integration', icon: Link, label: 'Integration', badge: null, path: '/integration' },
-        { id: 'profile', icon: User, label: 'Perfil', badge: null, path: '/profile' }
+        { id: 'profile', icon: User, label: 'Perfil', badge: null, path: '/profile' },
+        { id: 'quotation', icon: MessageSquare, label: 'Cotizaciones', badge: null, path: '/quotation' }
     ];
 
     const supportItems: MenuItemType[] = [

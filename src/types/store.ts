@@ -94,6 +94,7 @@ export interface StoreProductConfig {
     custom_price: number | null;
     stock_quantity: number;
     custom_profit: number | null;
+    profit_percentage: number | null;
     created_at: string;
     updated_at: string;
 }

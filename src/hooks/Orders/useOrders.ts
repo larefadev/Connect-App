@@ -3,6 +3,8 @@ import { useOrderStore } from '@/stores/orderStore';
 import { useCartStore } from '@/stores/cartStore';
 import { Order } from '@/stores/orderStore';
 import { useOrderOperations } from './useOrderOperations';
+import emailNotificationService from '@/services/orders/emailNotification.service';
+import supabase from '@/lib/Supabase';
 
 export const useOrders = (storeId?: number) => {
   const {
@@ -34,6 +36,40 @@ export const useOrders = (storeId?: number) => {
     getTotalAmount,
     clearCart,
   } = useCartStore();
+
+  // Función para obtener el email del propietario de la tienda
+  const getStoreOwnerEmail = useCallback(async (storeIdParam: number): Promise<string | null> => {
+    try {
+      // Primero obtener la tienda para conseguir el profile_id
+      const { data: storeData, error: storeError } = await supabase
+        .from('store')
+        .select('profile_id')
+        .eq('id', storeIdParam)
+        .single();
+
+      if (storeError || !storeData) {
+        console.error('Error al obtener tienda:', storeError);
+        return null;
+      }
+
+      // Luego obtener el perfil de la tienda para conseguir el corporate_email
+      const { data: profileData, error: profileError } = await supabase
+        .from('store_profile')
+        .select('corporate_email')
+        .eq('id', storeData.profile_id)
+        .single();
+
+      if (profileError || !profileData) {
+        console.error('Error al obtener perfil de tienda:', profileError);
+        return null;
+      }
+
+      return profileData.corporate_email;
+    } catch (error) {
+      console.error('Error al obtener email del propietario:', error);
+      return null;
+    }
+  }, []);
 
   // Función memoizada para obtener pedidos
   const getOrdersByStore = useCallback(async (storeIdParam: number) => {
@@ -72,7 +108,8 @@ export const useOrders = (storeId?: number) => {
     if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
       console.error('Información del cliente incompleta:', customerInfo);
       throw new Error('Información del cliente incompleta');
-    }    
+    }
+
     const orderData = {
       store_id: storeId,
       customer_name: customerInfo.name,
@@ -99,8 +136,16 @@ export const useOrders = (storeId?: number) => {
     
     
     try {
-
       const newOrder = await createOrderInDB(orderData);
+      
+      // Obtener el email del propietario de la tienda
+      const ownerEmail = await getStoreOwnerEmail(storeId);
+      
+      if (ownerEmail) {
+        await emailNotificationService.sendEmailNotification(newOrder, ownerEmail);
+      } else {
+        console.warn('No se pudo obtener el email del propietario de la tienda');
+      }
       
       // Agregar el pedido al store local
       addOrder(newOrder);
@@ -113,7 +158,7 @@ export const useOrders = (storeId?: number) => {
       console.error('Error en createOrderFromCart:', error);
       throw error;
     }
-  }, [storeId, cartItems, customerInfo, getSubtotal, getTaxAmount, getShippingCost, getTotalAmount, createOrderInDB, addOrder, clearCart]);
+  }, [storeId, cartItems, customerInfo, getSubtotal, getTaxAmount, getShippingCost, getTotalAmount, createOrderInDB, addOrder, clearCart, getStoreOwnerEmail]);
 
   // Obtener pedidos por estado
   const getOrdersByStatus = useCallback((orders: Order[], status: Order['order_status']) => {

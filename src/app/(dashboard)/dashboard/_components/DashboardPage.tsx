@@ -15,7 +15,7 @@ export const DashboardPage = () => {
                 {/* Header del Dashboard */}
                 <div className="text-center lg:text-left">
                     <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                        Bienvenido al Dashboard {person?.username}
+                        Bienvenido al Dashboard {person?.name} {person?.last_name}
                     </h1>
                     <p className="text-lg text-gray-600">
                         Gestiona tu tienda y monitorea el rendimiento
@@ -26,14 +26,14 @@ export const DashboardPage = () => {
                 <DashboardInformation />
 
                 {/* Resumen de Ventas */}
-                <SalesOverview />
+
+                {/*<SalesOverview />*/}
 
                 {/* Nuevos Lanzamientos */}
                 <NewArrivals />
 
                 {/* Información Adicional */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Estadísticas Rápidas */}
+               {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div className="bg-white rounded-xl p-6 shadow-sm border">
                         <h3 className="text-xl font-semibold text-gray-800 mb-4">
                             Acciones Rápidas
@@ -53,8 +53,6 @@ export const DashboardPage = () => {
                             </div>
                         </div>
                     </div>
-
-                    {/* Estado del Sistema */}
                     <div className="bg-white rounded-xl p-6 shadow-sm border">
                         <h3 className="text-xl font-semibold text-gray-800 mb-4">
                             Estado del Sistema
@@ -83,7 +81,7 @@ export const DashboardPage = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>*/}
             </div>
         </div>
     );
