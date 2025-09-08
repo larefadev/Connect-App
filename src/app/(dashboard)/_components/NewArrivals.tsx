@@ -8,12 +8,11 @@ import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
 export const NewArrivals = () => {
     const { products, loading } = useProducts();
+    
     const router = useRouter();
-    // Seleccionar productos aleatorios para mostrar
+
     const randomProducts = useMemo(() => {
         if (!products || products.length === 0) return [];
-        
-        // Mezclar productos y tomar los primeros 4
         const shuffled = [...products].sort(() => 0.5 - Math.random());
         return shuffled.slice(0, 4);
     }, [products]);

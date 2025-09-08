@@ -224,7 +224,10 @@ export const useStoreConfig = (storeId: number | null): UseStoreConfigReturn => 
         try {
             const { error: supabaseError } = await supabase
                 .from('store_products_config_test')
-                .update({ custom_profit: customProfit })
+                .update({ 
+                    custom_profit: customProfit,
+                    profit_percentage: customProfit 
+                })
                 .eq('store_id', storeId)
                 .eq('product_sku', productSku);
 

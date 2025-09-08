@@ -152,7 +152,7 @@ const SetUp = () => {
     const [storeType, setStoreType] = useState("Local")
     const [rfcType] = useState("own")
     const [uploadingFiles, setUploadingFiles] = useState({ logo: false, banner: false })
-    const { handleStoreSetup } = useRegistrationFlow();
+    const { handleStoreSetup, userData } = useRegistrationFlow();
     const { loading: citiesLoading, getCityOptions } = useCities();
 
     const [formData, setFormData] = useState({
@@ -257,7 +257,7 @@ const SetUp = () => {
             const { data: profileData, error: profileError } = await supabase
                 .from('store_profile')
                 .insert({
-                    name: formData.storeName,
+                    name: formData.storeName.toLowerCase(),
                     description: formData.storeName,
                     phone: formData.phone,
                     banner_image: formData.banner,
@@ -265,7 +265,7 @@ const SetUp = () => {
                     whatsapp_url: formData.whatsappUrl,
                     type_store: storeType === "Local" ? 1 : 2,
                     address: addressData?.[0]?.id,
-                    corporate_email: formData.corporateEmail,
+                    corporate_email: userData?.email,
                     rfc: formData.rfcNumber
                 })
                 .select();
@@ -346,7 +346,7 @@ const SetUp = () => {
                             />
                         </FormSection>
                         
-                        <FormSection label="Email corporativo de la tienda" icon={Mail}>
+                       {/* <FormSection label="Email corporativo de la tienda" icon={Mail}>
                             <InputField
                                 type="email"
                                 placeholder="tienda@tutienda.com"
@@ -354,7 +354,7 @@ const SetUp = () => {
                                 onChange={(e) => setFormData({...formData, corporateEmail: e.target.value})}
                                 icon={Mail}
                             />
-                        </FormSection>
+                        </FormSection>*/}
                     </div>
 
                     <FormSection label="URL de WhatsApp" icon={MessageCircle}>

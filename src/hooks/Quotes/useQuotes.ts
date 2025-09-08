@@ -9,7 +9,7 @@ import {
   UpdateQuoteRequest 
 } from '@/types/quote';
 
-export const useQuotes = () => {
+export const useQuotes = (idStore : number | undefined | string) => {
   const [quotes, setQuotes] = useState<ProductQuote[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +40,35 @@ export const useQuotes = () => {
     }
   }, []);
 
+  //Obtener cotizaciones por tienda
+  const fetchQuotesByStore = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data, error: fetchError } = await supabase
+        .from('product_quote_test')
+        .select(`
+          *,
+          client:client_quote_test(*),
+          company:company_quote_test!inner(*),
+          items:quote_items_test(*)
+        `)
+        .eq('company.store_id', idStore)
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      setQuotes(data || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al obtener cotizaciones');
+    } finally {
+      setLoading(false);
+    }
+  }, [idStore]);
+
+
+
   // Obtener una cotización por ID
   const fetchQuoteById = useCallback(async (id: string): Promise<ProductQuote | null> => {
     try {
@@ -51,10 +80,11 @@ export const useQuotes = () => {
         .select(`
           *,
           client:client_quote_test(*),
-          company:company_quote_test(*),
+          company:company_quote_test!inner(*),
           items:quote_items_test(*)
         `)
         .eq('id', id)
+        .eq('company.store_id', idStore)
         .single();
 
       if (fetchError) throw fetchError;
@@ -66,7 +96,7 @@ export const useQuotes = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [idStore]);
 
   // Crear una nueva cotización
   const createQuote = useCallback(async (quoteData: CreateQuoteRequest): Promise<ProductQuote | null> => {
@@ -84,10 +114,13 @@ export const useQuotes = () => {
       if (clientError) throw clientError;
       const clientId = clientData.id;
 
-      // 2. Crear empresa
+      // 2. Crear empresa con store_id
       const { data: companyData, error: companyError } = await supabase
         .from('company_quote_test')
-        .insert([quoteData.company])
+        .insert([{
+          ...quoteData.company,
+          store_id: idStore
+        }])
         .select()
         .single();
 
@@ -164,6 +197,12 @@ export const useQuotes = () => {
       setLoading(true);
       setError(null);
 
+      // Verificar que la cotización pertenezca a la tienda actual
+      const existingQuote = await fetchQuoteById(id);
+      if (!existingQuote) {
+        throw new Error('Cotización no encontrada o no pertenece a esta tienda');
+      }
+
       // 1. Actualizar cliente si se proporciona
       if (updates.client && updates.client.id) {
         const { error: clientError } = await supabase
@@ -178,7 +217,10 @@ export const useQuotes = () => {
       if (updates.company && updates.company.id) {
         const { error: companyError } = await supabase
           .from('company_quote_test')
-          .update(updates.company)
+          .update({
+            ...updates.company,
+            store_id: idStore // Asegurar que mantenga el store_id
+          })
           .eq('id', updates.company.id);
 
         if (companyError) throw companyError;
@@ -248,6 +290,12 @@ export const useQuotes = () => {
       setLoading(true);
       setError(null);
 
+      // Verificar que la cotización pertenezca a la tienda actual
+      const existingQuote = await fetchQuoteById(id);
+      if (!existingQuote) {
+        throw new Error('Cotización no encontrada o no pertenece a esta tienda');
+      }
+
       const { error } = await supabase
         .from('product_quote_test')
         .delete()
@@ -264,13 +312,19 @@ export const useQuotes = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchQuoteById]);
 
   // Cambiar estado de una cotización
   const updateQuoteStatus = useCallback(async (id: string, status: ProductQuote['status']): Promise<boolean> => {
     try {
       setLoading(true);
       setError(null);
+
+      // Verificar que la cotización pertenezca a la tienda actual
+      const existingQuote = await fetchQuoteById(id);
+      if (!existingQuote) {
+        throw new Error('Cotización no encontrada o no pertenece a esta tienda');
+      }
 
       const { error } = await supabase
         .from('product_quote_test')
@@ -291,7 +345,7 @@ export const useQuotes = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchQuoteById]);
 
   // Buscar cotizaciones
   const searchQuotes = useCallback(async (searchTerm: string) => {
@@ -304,9 +358,10 @@ export const useQuotes = () => {
         .select(`
           *,
           client:client_quote_test(*),
-          company:company_quote_test(*),
+          company:company_quote_test!inner(*),
           items:quote_items_test(*)
         `)
+        .eq('company.store_id', idStore)
         .or(`quote_number.ilike.%${searchTerm}%,client.name.ilike.%${searchTerm}%,company.name.ilike.%${searchTerm}%`)
         .order('created_at', { ascending: false });
 
@@ -318,12 +373,14 @@ export const useQuotes = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [idStore]);
 
   // Cargar cotizaciones al montar el componente
   useEffect(() => {
-    fetchQuotes();
-  }, [fetchQuotes]);
+    if (idStore) {
+      fetchQuotesByStore();
+    }
+  }, [idStore]);
 
   return {
     quotes,
@@ -336,6 +393,7 @@ export const useQuotes = () => {
     deleteQuote,
     updateQuoteStatus,
     searchQuotes,
-    clearError: () => setError(null)
+    clearError: () => setError(null),
+    fetchQuotesByStore
   };
 };

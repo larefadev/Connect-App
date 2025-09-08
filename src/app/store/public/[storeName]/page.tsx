@@ -31,7 +31,8 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
     useEffect(() => {
         if (storeName && !isInitialized.current) {
             isInitialized.current = true;
-            getStoreProfileByStoreName(storeName);
+            storeName.split('-')
+            getStoreProfileByStoreName(storeName.split('-').join(' '));
         }
     }, [storeName, getStoreProfileByStoreName]);
 
@@ -55,7 +56,7 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
         
         return categoryCodes.map(code => ({
             code,
-            name: code // Usar el código de categoría directamente como nombre
+            name: code
         }));
     };
 
@@ -299,13 +300,18 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
                                                 <p className="text-sm text-gray-600">Categoría: {product.Categoria}</p>
                                                 <div className="flex items-center space-x-3">
                                                     <span className="text-lg font-bold text-gray-900">
-                                                        ${product.config.custom_price?.toFixed(2) || product.Precio?.toFixed(2) || '0.00'}
+                                                        ${(() => {
+                                                            // Si hay precio personalizado, usarlo; sino calcular con ganancia
+                                                            if (product.config.custom_price) {
+                                                                return product.config.custom_price.toFixed(2);
+                                                            }
+                                                            // Calcular precio con ganancia aplicada
+                                                            const basePrice = product.Precio || 0;
+                                                            const profit = product.config.custom_profit || 0;
+                                                            const finalPrice = basePrice * (1 + profit / 100);
+                                                            return finalPrice.toFixed(2);
+                                                        })()}
                                                     </span>
-                                                    {product.config.custom_price && product.Precio && product.config.custom_price > product.Precio && (
-                                                        <span className="text-sm text-gray-500 line-through">
-                                                            ${product.Precio.toFixed(2)}
-                                                        </span>
-                                                    )}
                                                 </div>
                                                 {product.config.stock_quantity > 0 && (
                                                     <p className="text-sm text-green-600">
@@ -321,7 +327,19 @@ export default function PublicStorePage({ params }: { params: Promise<{ storeNam
                                 {storeId && (
                                     <div className="mt-3 px-4 pb-4">
                                         <AddToCartButton 
-                                            product={product}
+                                            product={{
+                                                ...product,
+                                                Precio: (() => {
+                                                    // Si hay precio personalizado, usarlo; sino calcular con ganancia
+                                                    if (product.config.custom_price) {
+                                                        return product.config.custom_price;
+                                                    }
+                                                    // Calcular precio con ganancia aplicada
+                                                    const basePrice = product.Precio || 0;
+                                                    const profit = product.config.custom_profit || 0;
+                                                    return basePrice * (1 + profit / 100);
+                                                })()
+                                            }}
                                             storeId={storeId}
                                             className="w-full"
                                         />

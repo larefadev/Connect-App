@@ -12,3 +12,11 @@ export interface  City{
 }
 
 
+export interface AddressResponse {
+    id?: number;
+    cityId?:number;
+    zone?:string;
+    street?:string;
+}
+
+

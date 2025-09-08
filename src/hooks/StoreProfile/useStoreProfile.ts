@@ -112,9 +112,15 @@ export const useStoreProfile = () => {
         setError(null);
         
         try {
+            // Convertir el nombre a minúsculas si está presente
+            const processedData = {
+                ...profileData,
+                ...(profileData.name && { name: profileData.name.toLowerCase() })
+            };
+            
             const { data, error: updateError } = await supabase
                 .from('store_profile')
-                .update(profileData)
+                .update(processedData)
                 .eq('id', storeProfile.id)
                 .select()
                 .single();

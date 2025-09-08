@@ -155,9 +155,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
 
 
     // Calcular precio final
-    const finalPrice = product.config.custom_price || product.Precio || 0;
     const basePrice = product.Precio || 0;
-    const hasCustomPrice = product.config.custom_price && product.config.custom_price !== basePrice;
+    const profit = product.config.custom_profit || 0;
+    const customPrice = product.config.custom_price;
+    
+    // Si hay precio personalizado, usarlo; sino calcular con ganancia
+    const finalPrice = customPrice || (basePrice * (1 + profit / 100));
+    const hasCustomPrice = customPrice && customPrice !== basePrice;
+    const hasProfit = profit > 0 && !customPrice;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -252,11 +257,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
                                     <p className="text-2xl font-bold text-gray-900">
                                         ${finalPrice.toFixed(2)}
                                     </p>
-                                    {hasCustomPrice && (
-                                        <p className="text-sm text-gray-500 line-through">
-                                            Precio base: ${basePrice.toFixed(2)}
-                                        </p>
-                                    )}
                                 </div>
                                 <div className="text-right">
                                     {hasStock ? (
@@ -277,11 +277,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ storeN
                             </div>
 
                             {/* Profit Information */}
-                            {product.config.custom_profit && (
+                            {(hasProfit || hasCustomPrice) && (
                                 <div className="border-t pt-4">
-                                    <p className="text-sm text-green-600 font-medium">
-                                        Margen de ganancia: {product.config.custom_profit}%
-                                    </p>
+                                    {hasProfit && (
+                                        <p className="text-sm text-green-600 font-medium">
+                                            Margen de ganancia: {profit}%
+                                        </p>
+                                    )}
+                                    {hasCustomPrice && (
+                                        <p className="text-sm text-blue-600 font-medium">
+                                            Precio personalizado aplicado
+                                        </p>
+                                    )}
                                 </div>
                             )}
                         </div>

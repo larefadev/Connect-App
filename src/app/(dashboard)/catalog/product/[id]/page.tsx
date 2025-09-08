@@ -22,7 +22,6 @@ export default function DashboardProductDetailPage({ params }: { params: Promise
                 if (foundProduct) {
                     setProduct(foundProduct);
                 } else {
-                    // Si no se encuentra el producto, redirigir al dashboard
                     router.push('/dashboard');
                 }
             }

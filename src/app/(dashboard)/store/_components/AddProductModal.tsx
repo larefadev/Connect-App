@@ -1,41 +1,62 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { X, Search, Plus, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useProducts } from '@/hooks/Products/useProducts';
-import { useStoreConfig } from '@/hooks/StoreProfile/useStoreConfig';
-import { Product } from '@/types/ecomerce';
+import { Product, Category } from '@/types/ecomerce';
 import { ProductImage } from '@/components/ui/product-image';
-import { useToastContext } from '@/components/providers/ToastProvider';
+import { StoreProductConfig } from '@/types/store';
 
 interface AddProductModalProps {
     isOpen: boolean;
     onClose: () => void;
     storeId: number;
+    products: Product[];
+    categories: Category[];
+    productsLoading: boolean;
+    addProductToStore: (productSku: string, customPrice?: number, customProfit?: number) => Promise<boolean>;
+    getAllStoreProducts: () => StoreProductConfig[];
+    showSuccess: (message: string) => void;
+    showError: (message: string) => void;
+    showInfo: (message: string, ...args: any[]) => void;
 }
 
-export const AddProductModal = ({ isOpen, onClose, storeId }: AddProductModalProps) => {
+export const AddProductModal = ({ 
+    isOpen, 
+    onClose, 
+    storeId,
+    products,
+    categories,
+    productsLoading,
+    addProductToStore,
+    getAllStoreProducts,
+    showSuccess,
+    showError,
+    showInfo
+}: AddProductModalProps) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
     const [currentPage, setCurrentPage] = useState(1);
-    const [productsPerPage, setProductsPerPage] = useState(20); // Mostrar 20 productos por página
+    const [productsPerPage, setProductsPerPage] = useState(20);
     const [isChangingPage, setIsChangingPage] = useState(false);
-    const { products, categories, loading } = useProducts();    
-    const { addProductToStore, getAllStoreProducts } = useStoreConfig(storeId);
-    const { success: showSuccess, error: showError, info: showInfo } = useToastContext();
-    // Evitar llamadas innecesarias al hook
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
+    
+    // Manejar la carga inicial para evitar destellos
     useEffect(() => {
-        if (isOpen && storeId) {
-            showInfo('Modal abierto, cargando datos para storeId:', storeId);
+        if (isOpen && !productsLoading && products.length > 0) {
+            // Pequeño delay para evitar destello en la carga inicial
+            const timer = setTimeout(() => {
+                setIsInitialLoad(false);
+            }, 100);
+            return () => clearTimeout(timer);
         }
-    }, [isOpen, storeId]);
+    }, [isOpen, productsLoading, products.length]);
 
-    // Filtrar productos que no están ya en la tienda
+    // Filtrar productos que no están ya en la tienda con useMemo
     const storeProducts = useMemo(() => getAllStoreProducts(), [getAllStoreProducts]);
     const availableProducts = useMemo(() => 
         products.filter(product => 
@@ -43,50 +64,70 @@ export const AddProductModal = ({ isOpen, onClose, storeId }: AddProductModalPro
         ), [products, storeProducts]
     );
 
-    // Filtrar productos según búsqueda y categoría
-    const filteredProducts = availableProducts.filter(product => {
-        const matchesSearch = searchTerm === '' || 
-            product.Nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            product.Marca?.toLowerCase().includes(searchTerm.toLowerCase());
+    // Filtrar productos según búsqueda y categoría con useMemo
+    const filteredProducts = useMemo(() => 
+        availableProducts.filter(product => {
+            const matchesSearch = searchTerm === '' || 
+                product.Nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.Marca?.toLowerCase().includes(searchTerm.toLowerCase());
+            
+            const matchesCategory = selectedCategory === '' || 
+                product.Categoria === selectedCategory;
+
+            return matchesSearch && matchesCategory;
+        }), [availableProducts, searchTerm, selectedCategory]
+    );
+
+    // Lógica de paginación optimizada con useMemo
+    const paginationData = useMemo(() => {
+        const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
         
-        const matchesCategory = selectedCategory === '' || 
-            product.Categoria === selectedCategory;
+        // Asegurar que currentPage no exceda el total de páginas
+        const validCurrentPage = Math.min(currentPage, Math.max(1, totalPages));
+        const startIndex = (validCurrentPage - 1) * productsPerPage;
+        const endIndex = startIndex + productsPerPage;
+        const currentProducts = filteredProducts.slice(startIndex, endIndex);
+        
+        return { 
+            totalPages, 
+            startIndex, 
+            endIndex, 
+            currentProducts,
+            validCurrentPage 
+        };
+    }, [filteredProducts, productsPerPage, currentPage]);
 
-        return matchesSearch && matchesCategory;
-    });
+    const { totalPages, startIndex, endIndex, currentProducts, validCurrentPage } = paginationData;
 
-    // Lógica de paginación
-    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-    const startIndex = (currentPage - 1) * productsPerPage;
-    const endIndex = startIndex + productsPerPage;
-    const currentProducts = filteredProducts.slice(startIndex, endIndex);
-
-    // Resetear página cuando cambien los filtros
+    // Resetear página cuando cambien los filtros, pero solo si es necesario
     useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, selectedCategory]);
+        if (currentPage > totalPages && totalPages > 0) {
+            setCurrentPage(1);
+        }
+    }, [totalPages, currentPage]);
 
-    // Función para cambiar página
-    const handlePageChange = async (page: number) => {
-        setIsChangingPage(true);
-        setCurrentPage(page);
+    // Función para cambiar página optimizada con useCallback
+    const handlePageChange = useCallback(async (page: number) => {
+        if (page === currentPage || page < 1 || page > totalPages) return;
         
-        // Scroll al inicio del modal
+        setIsChangingPage(true);
+        
+        // Scroll al inicio del modal antes del cambio
         const modalContent = document.querySelector('.modal-content');
         if (modalContent) {
             modalContent.scrollTop = 0;
         }
         
-        // Simular un pequeño delay para mostrar el indicador de carga
+        // Cambiar página con un pequeño delay para suavizar la transición
         setTimeout(() => {
+            setCurrentPage(page);
             setIsChangingPage(false);
-        }, 100);
-    };
+        }, 50);
+    }, [currentPage, totalPages]);
 
-    // Agregar producto a la tienda
-    const handleAddProduct = async (productSku: string) => {
+    // Agregar producto a la tienda optimizada con useCallback
+    const handleAddProduct = useCallback(async (productSku: string) => {
         try {
-            
             const success = await addProductToStore(productSku);
             if (success) {
                 setSelectedProducts(prev => {
@@ -101,20 +142,18 @@ export const AddProductModal = ({ isOpen, onClose, storeId }: AddProductModalPro
         } catch (error) {
             console.error('Error en handleAddProduct:', error);
         }
-    };
+    }, [addProductToStore, showSuccess, showError]);
 
-    // Agregar múltiples productos seleccionados
-    const handleAddSelectedProducts = async () => {
+    const handleAddSelectedProducts = useCallback(async () => {
         for (const productSku of selectedProducts) {
             await addProductToStore(productSku);
         }
         onClose();
-    };
+    }, [selectedProducts, addProductToStore, onClose]);
 
-    // Limpiar selección
-    const handleClearSelection = () => {
+    const handleClearSelection = useCallback(() => {
         setSelectedProducts(new Set());
-    };
+    }, []);
 
     if (!isOpen) return null;
 
@@ -131,16 +170,6 @@ export const AddProductModal = ({ isOpen, onClose, storeId }: AddProductModalPro
 
                 {/* Search and Filters */}
                 <div className="p-6 border-b bg-gray-50">
-                    {/* Debug Info */}
-                    {process.env.NODE_ENV === 'development' && (
-                        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
-                            <strong>DEBUG:</strong> Total productos disponibles: {availableProducts.length} | 
-                            Productos en tienda: {storeProducts.length} | 
-                            Productos seleccionados: {selectedProducts.size} | 
-                            Página {currentPage} de {totalPages} | 
-                            Mostrando {currentProducts.length} productos
-                        </div>
-                    )}
                     <div className="flex gap-4 mb-4">
                         <div className="flex-1">
                             <div className="relative">
@@ -169,7 +198,7 @@ export const AddProductModal = ({ isOpen, onClose, storeId }: AddProductModalPro
                             value={productsPerPage}
                             onChange={(e) => {
                                 setProductsPerPage(Number(e.target.value));
-                                setCurrentPage(1); // Resetear a la primera página
+                                setCurrentPage(1);
                             }}
                             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                         >
@@ -201,13 +230,9 @@ export const AddProductModal = ({ isOpen, onClose, storeId }: AddProductModalPro
                         </div>
                     )}
 
-                    {/* Pagination Controls */}
                     {filteredProducts.length > productsPerPage && (
                         <div className="px-6 py-4 border-t bg-gray-50">
                             <div className="flex items-center justify-between">
-                                <div className="text-sm text-gray-600">
-                                    Mostrando {startIndex + 1} a {Math.min(endIndex, filteredProducts.length)} de {filteredProducts.length} productos
-                                </div>
                                 <div className="flex items-center space-x-2">
                                     <Button
                                         variant="outline"
@@ -264,7 +289,7 @@ export const AddProductModal = ({ isOpen, onClose, storeId }: AddProductModalPro
 
                 {/* Products Grid */}
                 <div className="p-6 overflow-y-auto max-h-[60vh] modal-content">
-                    {loading ? (
+                    {productsLoading ? (
                         <div className="text-center py-8">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
                             <p className="text-gray-600">Cargando productos...</p>
@@ -277,14 +302,6 @@ export const AddProductModal = ({ isOpen, onClose, storeId }: AddProductModalPro
                         </div>
                     ) : (
                         <>
-                            {isChangingPage && (
-                                <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
-                                    <div className="text-center">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto mb-2"></div>
-                                        <p className="text-sm text-gray-600">Cambiando página...</p>
-                                    </div>
-                                </div>
-                            )}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {currentProducts.map((product) => (
                                 <Card 

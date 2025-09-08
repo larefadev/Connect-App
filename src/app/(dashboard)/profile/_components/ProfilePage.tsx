@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Save, Edit, X, Camera } from "lucide-react";
+import { User, Save, Edit, X, Camera, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { usePerson } from "@/hooks/Person/usePerson";
 import { useState, useEffect, useRef } from "react";
 import { Person } from "@/types/person";
 import { useAuthStore } from "@/stores/authStore";
+import { SettingAccount } from "./SettingAccount";
 
 export const ProfilePage = () => {
     const { person, loading, error, updating, uploadingImage, updatePerson, uploadProfileImage } = usePerson();
@@ -106,8 +107,13 @@ export const ProfilePage = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="text-lg">Cargando perfil...</div>
+            <div className="space-y-6">
+                <div className="flex justify-center items-center py-12">
+                    <div className="text-center">
+                        <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-gray-500" />
+                        <p className="text-gray-600">Cargando...</p>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -290,34 +296,7 @@ export const ProfilePage = () => {
                 </Card>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Configuración de la Cuenta</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                            <h3 className="font-medium">Notificaciones por Email</h3>
-                            <p className="text-sm text-gray-500">Recibe actualizaciones por email sobre tus pedidos</p>
-                        </div>
-                        <input type="checkbox" defaultChecked className="w-4 h-4" />
-                    </div>
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                            <h3 className="font-medium">Notificaciones por SMS</h3>
-                            <p className="text-sm text-gray-500">Recibe actualizaciones por SMS sobre tus pedidos</p>
-                        </div>
-                        <input type="checkbox" className="w-4 h-4" />
-                    </div>
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                            <h3 className="font-medium">Comunicaciones de Marketing</h3>
-                            <p className="text-sm text-gray-500">Recibe emails promocionales y ofertas</p>
-                        </div>
-                        <input type="checkbox" defaultChecked className="w-4 h-4" />
-                    </div>
-                </CardContent>
-            </Card>
+          {/*<SettingAccount />*/}
         </div>
     );
 };
