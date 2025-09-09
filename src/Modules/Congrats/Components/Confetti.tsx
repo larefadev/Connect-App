@@ -45,7 +45,7 @@ export const ConfettiSuccess = () => {
                 </div>
 
                 <h2 className="text-xl font-semibold text-gray-900">
-                    ¡Tu cuenta está activa, {userData.username}! 🎉
+                    ¡Tu cuenta está casi lista, {userData.username}! 🎉
                 </h2>
                 <p className="text-gray-500 text-sm mt-2">
                     Ahora estás listo para configurar tu tienda y comenzar a vender.
