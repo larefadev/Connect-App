@@ -61,7 +61,7 @@ interface B2BEmailNotificationPayload {
 
 class EmailNotificationService extends BaseService {
     constructor() {
-        super("http://localhost:3006/api");
+        super( process.env.NEXT_PUBLIC_API_URL + "/api");
     }
 
     public async sendEmailNotification(orderData: Order, ownerEmail: string) {

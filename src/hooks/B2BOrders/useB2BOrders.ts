@@ -196,7 +196,7 @@ export const useB2BOrders = (storeId: number | undefined, ownerEmail?: string, s
       if (orderError) throw orderError;
 
       // Crear los items del pedido
-      const itemsWithOrderId = orderData.items.map((item, index) => ({
+      const itemsWithOrderId = orderData.items.map((item) => ({
         ...item,
         b2b_order_id: orderResult.id,
         total_price: (item.quantity * item.unit_price) - (item.discount_amount || 0),
@@ -208,17 +208,12 @@ export const useB2BOrders = (storeId: number | undefined, ownerEmail?: string, s
         .insert(itemsWithOrderId);
 
       if (itemsError) throw itemsError;
-
-      // Obtener el pedido completo con relaciones
       const newOrder = await fetchOrderById(orderResult.id);
-      
-      // Enviar notificación por email si se proporciona el email del propietario
+
       if (newOrder && ownerEmail) {
         try {
-          // Transformar los datos al formato esperado por el endpoint
           const transformedOrderData = transformB2BOrderForEmail(newOrder, storeProfile, userEmail);
-          
-          // Debug: Log de los datos que se están enviando
+
           console.log('Datos del storeProfile:', storeProfile);
           console.log('Email del usuario:', userEmail);
           console.log('Datos transformados para email:', {
@@ -291,7 +286,6 @@ export const useB2BOrders = (storeId: number | undefined, ownerEmail?: string, s
         if (itemsError) throw itemsError;
       }
 
-      // Actualizar el pedido principal
       const updateData: Partial<B2BOrder> = {};
       if (updates.order_status) updateData.order_status = updates.order_status;
       if (updates.payment_status) updateData.payment_status = updates.payment_status;
