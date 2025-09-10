@@ -6,13 +6,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Filter, Package, Plus, Search, X, Loader2, Eye } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useProducts } from "@/hooks/Products/useProducts";
+import { useCatalogFilters } from "@/hooks/Products/useCatalogFilters";
 import { Product, Category, ProductFilters } from "@/types/ecomerce";
 import { ProductDetailPage } from './ProductDetailPage';
 
@@ -32,8 +34,22 @@ export const CatalogPage = () => {
         currentFilters
     } = useProducts();
 
+    const {
+        years,
+        assemblyPlants,
+        carModels,
+        motorizations,
+        currentFilters: catalogFilters,
+        setYear,
+        setAssemblyPlant,
+        setModel,
+        setMotorization,
+        setPriceRange: setCatalogPriceRange,
+        clearFilters: clearCatalogFilters,
+        getModelsByAssemblyPlant
+    } = useCatalogFilters();
+
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState("");
     const [priceRange, setPriceRange] = useState([0, 1000]);
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
     
@@ -44,18 +60,20 @@ export const CatalogPage = () => {
     // Estado para página de producto
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-    // Aplicar filtros cuando cambien los estados
     useEffect(() => {
         const filters: ProductFilters = {};
         
-        if (selectedCategory) filters.categoria = selectedCategory;
         if (searchTerm) filters.search = searchTerm;
         if (priceRange[0] > 0) filters.precioMin = priceRange[0];
         if (priceRange[1] < 1000) filters.precioMax = priceRange[1];
         if (selectedBrands.length > 0) filters.marca = selectedBrands.join(",");
+        if (catalogFilters.year) filters.year = catalogFilters.year;
+        if (catalogFilters.assemblyPlant) filters.assemblyPlant = catalogFilters.assemblyPlant;
+        if (catalogFilters.model) filters.model = catalogFilters.model;
+        if (catalogFilters.motorization) filters.motorization = catalogFilters.motorization;
 
         filterProducts(filters);
-    }, [selectedCategory, searchTerm, priceRange, selectedBrands, filterProducts]);
+    }, [searchTerm, priceRange, selectedBrands, catalogFilters, filterProducts]);
 
     // Manejar búsqueda
     const handleSearch = (term: string) => {
@@ -63,10 +81,6 @@ export const CatalogPage = () => {
         searchProducts(term);
     };
 
-    // Manejar filtro por categoría
-    const handleCategoryFilter = (categoria: string) => {
-        setSelectedCategory(categoria === selectedCategory ? "" : categoria);
-    };
 
     // Manejar filtro por marca
     const handleBrandFilter = (brand: string) => {
@@ -80,14 +94,15 @@ export const CatalogPage = () => {
     // Manejar filtro por precio
     const handlePriceFilter = (range: number[]) => {
         setPriceRange(range);
+        setCatalogPriceRange(range[0], range[1]);
     };
 
     // Limpiar todos los filtros
     const handleClearFilters = () => {
         setSearchTerm("");
-        setSelectedCategory("");
         setPriceRange([0, 1000]);
         setSelectedBrands([]);
+        clearCatalogFilters();
         clearFilters();
     };
 
@@ -120,7 +135,7 @@ export const CatalogPage = () => {
     // Resetear página cuando cambien los filtros
     useEffect(() => {
         setCurrentPage(1);
-    }, [selectedCategory, searchTerm, selectedBrands, priceRange]);
+    }, [searchTerm, selectedBrands, priceRange]);
 
     if (loading) {
         return (
@@ -207,30 +222,32 @@ export const CatalogPage = () => {
                         <SheetTitle>Filtros</SheetTitle>
                     </SheetHeader>
                         <FilterSidebar
-                            categories={categories}
-                            selectedCategory={selectedCategory}
-                            onCategoryFilter={handleCategoryFilter}
                             uniqueBrands={uniqueBrands}
                             selectedBrands={selectedBrands}
                             onBrandFilter={handleBrandFilter}
                             priceRange={priceRange}
                             onPriceFilter={handlePriceFilter}
                             onClearFilters={handleClearFilters}
+                            // Nuevos filtros de catálogo
+                            years={years}
+                            assemblyPlants={assemblyPlants}
+                            carModels={carModels}
+                            motorizations={motorizations}
+                            catalogFilters={catalogFilters}
+                            onYearChange={setYear}
+                            onAssemblyPlantChange={setAssemblyPlant}
+                            onModelChange={setModel}
+                            onMotorizationChange={setMotorization}
+                            getModelsByAssemblyPlant={getModelsByAssemblyPlant}
                         />
                 </SheetContent>
             </Sheet>
         </div>
 
             {/* Filtros activos */}
-            {(selectedCategory || searchTerm || selectedBrands.length > 0 || (priceRange[0] > 0 || priceRange[1] < 1000)) && (
+            {(searchTerm || selectedBrands.length > 0 || (priceRange[0] > 0 || priceRange[1] < 1000) || catalogFilters.year || catalogFilters.assemblyPlant || catalogFilters.model || catalogFilters.motorization) && (
                 <div className="flex flex-wrap gap-2 items-center">
                     <span className="text-sm text-gray-600">Filtros activos:</span>
-                    {selectedCategory && (
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                            Categoría: {selectedCategory}
-                            <X className="w-3 h-3 cursor-pointer" onClick={() => setSelectedCategory("")} />
-                        </Badge>
-                    )}
                     {searchTerm && (
                         <Badge variant="secondary" className="flex items-center gap-1">
                             Búsqueda: {searchTerm}
@@ -246,7 +263,34 @@ export const CatalogPage = () => {
                     {(priceRange[0] > 0 || priceRange[1] < 1000) && (
                         <Badge variant="secondary" className="flex items-center gap-1">
                             Precio: ${priceRange[0]} - ${priceRange[1]}
-                            <X className="w-3 h-3 cursor-pointer" onClick={() => setPriceRange([0, 1000])} />
+                            <X className="w-3 h-3 cursor-pointer" onClick={() => {
+                                setPriceRange([0, 1000]);
+                                setCatalogPriceRange(0, 1000);
+                            }} />
+                        </Badge>
+                    )}
+                    {catalogFilters.year && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                            Año: {catalogFilters.year}
+                            <X className="w-3 h-3 cursor-pointer" onClick={() => setYear("")} />
+                        </Badge>
+                    )}
+                    {catalogFilters.assemblyPlant && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                            Ensambladora: {catalogFilters.assemblyPlant}
+                            <X className="w-3 h-3 cursor-pointer" onClick={() => setAssemblyPlant("")} />
+                        </Badge>
+                    )}
+                    {catalogFilters.model && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                            Modelo: {catalogFilters.model}
+                            <X className="w-3 h-3 cursor-pointer" onClick={() => setModel("")} />
+                        </Badge>
+                    )}
+                    {catalogFilters.motorization && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                            Motorización: {catalogFilters.motorization}
+                            <X className="w-3 h-3 cursor-pointer" onClick={() => setMotorization("")} />
                         </Badge>
                     )}
                     <Button variant="outline" size="sm" onClick={handleClearFilters}>
@@ -259,7 +303,7 @@ export const CatalogPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {currentProducts.length === 0 ? (
                 <div className="col-span-full text-center py-12 text-gray-500">
-                    {searchTerm || selectedCategory || selectedBrands.length > 0 
+                    {searchTerm || selectedBrands.length > 0 
                         ? "No se encontraron productos con los filtros aplicados"
                         : "No hay productos disponibles"
                     }
@@ -383,144 +427,136 @@ const ProductCard = ({
 );
 
 const FilterSidebar = ({
-    categories,
-    selectedCategory,
-    onCategoryFilter,
     uniqueBrands,
     selectedBrands,
     onBrandFilter,
     priceRange,
     onPriceFilter,
-    onClearFilters
+    onClearFilters,
+    // Nuevos filtros de catálogo
+    years,
+    assemblyPlants,
+    carModels,
+    motorizations,
+    catalogFilters,
+    onYearChange,
+    onAssemblyPlantChange,
+    onModelChange,
+    onMotorizationChange,
+    getModelsByAssemblyPlant
 }: {
-    categories: Category[];
-    selectedCategory: string;
-    onCategoryFilter: (categoria: string) => void;
     uniqueBrands: string[];
     selectedBrands: string[];
     onBrandFilter: (brand: string) => void;
     priceRange: number[];
     onPriceFilter: (range: number[]) => void;
     onClearFilters: () => void;
-}) => (
+    // Nuevos filtros de catálogo
+    years: string[];
+    assemblyPlants: any[];
+    carModels: any[];
+    motorizations: any[];
+    catalogFilters: any;
+    onYearChange: (year: string) => void;
+    onAssemblyPlantChange: (assemblyPlant: string) => void;
+    onModelChange: (model: string) => void;
+    onMotorizationChange: (motorization: string) => void;
+    getModelsByAssemblyPlant: (assemblyPlantCode: string) => any[];
+}) => {
+    // Filtrar modelos por ensambladora seleccionada usando la nueva columna code_assembly_plant
+    const filteredModels = useMemo(() => {
+        if (catalogFilters.assemblyPlant && catalogFilters.assemblyPlant !== "all") {
+            // Buscar el código de la ensambladora seleccionada
+            const selectedAssemblyPlant = assemblyPlants.find(plant => 
+                plant.assembly_plant === catalogFilters.assemblyPlant
+            );
+            
+            if (selectedAssemblyPlant) {
+                // Filtrar modelos que coincidan con el código de la ensambladora usando la nueva columna
+                return carModels.filter(model => model.code_assembly_plant === selectedAssemblyPlant.code);
+            }
+        }
+        return carModels;
+    }, [catalogFilters.assemblyPlant, assemblyPlants, carModels]);
+
+    return (
     <div className="space-y-8">
-        {/* Categorías */}
+
+        {/* Año */}
         <div>
-            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Categoría</h4>
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Año</h4>
             <Select 
-                value={selectedCategory || "all"} 
-                onValueChange={(value) => onCategoryFilter(value === "all" ? "" : value)}
+                value={catalogFilters.year || "all"} 
+                onValueChange={(value) => onYearChange(value === "all" ? "" : value)}
             >
                 <SelectTrigger className="bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                    <SelectValue placeholder="Seleccionar Categoría" />
+                    <SelectValue placeholder="Seleccionar Año" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="all">Todas las categorías</SelectItem>
-                    {categories.map((cat) => (
-                        <SelectItem key={cat.Codigo} value={cat.Categoria || ""}>
-                            {cat.Nombre || cat.Categoria}
+                    <SelectItem value="all">Todos los años</SelectItem>
+                    {years.map((year) => (
+                        <SelectItem key={year} value={year}>
+                            {year}
                         </SelectItem>
                     ))}
                 </SelectContent>
             </Select>
         </div>
 
-        {/* Marcas */}
+        {/* Ensambladora-Modelo */}
         <div>
-            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Marca</h4>
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input 
-                    placeholder="Buscar Marca" 
-                    className="pl-10 pr-10 bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Ensambladora-Modelo</h4>
+            <div className="space-y-3">
+                <SearchableSelect
+                    value={catalogFilters.assemblyPlant || "all"}
+                    onValueChange={(value) => onAssemblyPlantChange(value === "all" ? "" : value)}
+                    placeholder="Buscar ensambladora..."
+                    options={assemblyPlants.map(plant => ({
+                        value: plant.assembly_plant || '',
+                        label: plant.assembly_plant || 'Sin nombre'
+                    }))}
+                    allOption={{ value: "all", label: "Todas las ensambladoras" }}
                 />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <span className="text-gray-400 text-sm">↕</span>
-                </div>
-            </div>
-        </div>
-
-        {/* Proveedor */}
-        <div>
-            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Proveedor</h4>
-            <Select>
-                <SelectTrigger className="bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                    <SelectValue placeholder="Seleccionar Proveedor" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="supplier1">Proveedor 1</SelectItem>
-                    <SelectItem value="supplier2">Proveedor 2</SelectItem>
-                    <SelectItem value="supplier3">Proveedor 3</SelectItem>
-                </SelectContent>
-            </Select>
-        </div>
-
-        {/* Tipo de Repuesto */}
-        <div>
-            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Tipo de Repuesto</h4>
-            <div className="grid grid-cols-2 gap-3">
-                {[
-                    "Zapatas de freno",
-                    "Pastillas de freno", 
-                    "Discos de freno",
-                    "Líquido de frenos",
-                    "Caliper de frenos",
-                    "Líneas de freno"
-                ].map((part) => (
-                    <div key={part} className="flex items-center space-x-3">
-                        <Checkbox 
-                            id={part}
-                            className="data-[state=checked]:bg-black data-[state=checked]:border-black"
-                        />
-                        <Label htmlFor={part} className="text-sm text-gray-700 cursor-pointer font-medium">
-                            {part}
-                        </Label>
+                
+                <SearchableSelect
+                    value={catalogFilters.model || "all"}
+                    onValueChange={(value) => onModelChange(value === "all" ? "" : value)}
+                    placeholder="Buscar modelo..."
+                    options={filteredModels.map(model => ({
+                        value: model.model_car || '',
+                        label: model.model_car || 'Sin nombre'
+                    }))}
+                    allOption={{ value: "all", label: "Todos los modelos" }}
+                />
+                
+                {/* Indicador de modelos disponibles */}
+                {catalogFilters.assemblyPlant && catalogFilters.assemblyPlant !== "all" && (
+                    <div className="text-xs text-gray-500 mt-1">
+                        {filteredModels.length === 0 ? (
+                            <span className="text-orange-600">
+                                No hay modelos disponibles para esta ensambladora
+                            </span>
+                        ) : (
+                            `${filteredModels.length} modelo${filteredModels.length !== 1 ? 's' : ''} disponible${filteredModels.length !== 1 ? 's' : ''} para esta ensambladora`
+                        )}
                     </div>
-                ))}
+                )}
             </div>
         </div>
 
-        {/* Modelo */}
+        {/* Motorización */}
         <div>
-            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Modelo</h4>
-            <Select>
-                <SelectTrigger className="bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                    <SelectValue placeholder="Seleccionar Modelo" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="corolla">Toyota Corolla</SelectItem>
-                    <SelectItem value="civic">Honda Civic</SelectItem>
-                    <SelectItem value="focus">Ford Focus</SelectItem>
-                    <SelectItem value="golf">Volkswagen Golf</SelectItem>
-                </SelectContent>
-            </Select>
-        </div>
-
-        {/* Año */}
-        <div>
-            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Año</h4>
-            <div className="grid grid-cols-2 gap-3">
-                <Select>
-                    <SelectTrigger className="bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                        <SelectValue placeholder="Desde" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {Array.from({length: 10}, (_, i) => 2015 + i).map(year => (
-                            <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <Select>
-                    <SelectTrigger className="bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                        <SelectValue placeholder="Hasta" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {Array.from({length: 10}, (_, i) => 2015 + i).map(year => (
-                            <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Motorización</h4>
+            <SearchableSelect
+                value={catalogFilters.motorization || "all"}
+                onValueChange={(value) => onMotorizationChange(value === "all" ? "" : value)}
+                placeholder="Buscar motorización..."
+                options={motorizations.map(motorization => ({
+                    value: motorization.motorization || '',
+                    label: motorization.motorization || 'Sin nombre'
+                }))}
+                allOption={{ value: "all", label: "Todas las motorizaciones" }}
+            />
         </div>
 
         {/* Rango de Precio */}
@@ -541,44 +577,6 @@ const FilterSidebar = ({
             </div>
         </div>
 
-        {/* Rango de Ganancia */}
-        <div>
-            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">Rango de Ganancia</h4>
-            <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <Label className="text-xs text-gray-600">Mínimo (%)</Label>
-                        <Input 
-                            type="number"
-                            placeholder="0"
-                            className="text-sm bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                        />
-                    </div>
-                    <div>
-                        <Label className="text-xs text-gray-600">Máximo (%)</Label>
-                        <Input 
-                            type="number"
-                            placeholder="100"
-                            className="text-sm bg-gray-50 border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                        />
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {/* En Stock */}
-        <div>
-            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">En Stock</h4>
-            <div className="flex items-center space-x-3">
-                <Switch 
-                    id="in-stock" 
-                    className="data-[state=checked]:bg-red-500"
-                />
-                <Label htmlFor="in-stock" className="text-sm text-gray-700 font-medium">
-                    Solo productos disponibles
-                </Label>
-            </div>
-        </div>
 
         {/* Botones de Acción */}
         <div className="flex justify-between items-center pt-4 border-t border-gray-200">
@@ -596,7 +594,8 @@ const FilterSidebar = ({
             </Button>
         </div>
     </div>
-);
+    );
+};
 
 // Componente de paginación
 const Pagination = ({
