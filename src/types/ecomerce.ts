@@ -37,6 +37,14 @@ export interface Product {
     Imagen?: string;
     Categoria?: string;
     Marca?: string;
+    Ensambladora?: string;
+    Modelo?: string;
+    Año?: string;
+    Motorizacion?: string;
+    Code_año?: string;
+    Code_modelo?: string;
+    Code_marca?: string;
+    Code_motorizacion?: string;
 }
 
 export interface Category {
@@ -52,5 +60,9 @@ export interface ProductFilters {
     precioMin?: number;
     precioMax?: number;
     search?: string;
+    year?: string;
+    assemblyPlant?: string;
+    model?: string;
+    motorization?: string;
 }
 

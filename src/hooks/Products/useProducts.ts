@@ -249,6 +249,12 @@ export const useProducts = (): UseProductsReturn => {
     setCurrentFilters(filters);
     
     let filtered = [...products];
+    
+    // Debug: mostrar valores únicos de ensambladora en los productos
+    if (filters.assemblyPlant) {
+      const uniqueAssemblyPlants = [...new Set(products.map(p => p.Ensambladora).filter(Boolean))];
+      console.log('Ensambladoras disponibles en productos:', uniqueAssemblyPlants);
+    }
 
     // Filtro por categoría
     if (filters.categoria) {
@@ -285,6 +291,37 @@ export const useProducts = (): UseProductsReturn => {
         product.Nombre?.toLowerCase().includes(searchTerm) ||
         product.Descricpion?.toLowerCase().includes(searchTerm) ||
         product.Marca?.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Filtro por año
+    if (filters.year) {
+      filtered = filtered.filter(product => 
+        product.Año === filters.year
+      );
+    }
+
+    // Filtro por ensambladora
+    if (filters.assemblyPlant) {
+      console.log('Filtrando por ensambladora:', filters.assemblyPlant);
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(product => 
+        product.Ensambladora === filters.assemblyPlant
+      );
+      console.log(`Productos antes: ${beforeCount}, después: ${filtered.length}`);
+    }
+
+    // Filtro por modelo
+    if (filters.model) {
+      filtered = filtered.filter(product => 
+        product.Modelo === filters.model
+      );
+    }
+
+    // Filtro por motorización
+    if (filters.motorization) {
+      filtered = filtered.filter(product => 
+        product.Motorizacion === filters.motorization
       );
     }
 
