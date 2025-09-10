@@ -27,7 +27,7 @@ export const useProductYears = (): UseProductYearsReturn => {
       console.log('Years data:', data);
       // Extraer años únicos y ordenarlos
       const uniqueYears = Array.from(
-        new Set(data?.map(item => item.Año).filter(Boolean))
+        new Set(data?.map((item: any) => item.Año).filter(Boolean))
       ).sort((a, b) => b.localeCompare(a));
       
       console.log('Unique years:', uniqueYears);
