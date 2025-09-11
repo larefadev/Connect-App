@@ -4,7 +4,6 @@ import React from 'react';
 type CompanyDetailsProps = {
   form: {
     companyName: string;
-    companyAddress: string;
     companyPhone: string;
     companyEmail: string;
   };
@@ -48,16 +47,6 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ form }) => {
             readOnly
             className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed h-auto"
             placeholder="Teléfono de la empresa"
-          />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-600 mb-1">Dirección</label>
-          <input
-            type="text"
-            value={form.companyAddress}
-            readOnly
-            className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed h-auto"
-            placeholder="Dirección de la empresa"
           />
         </div>
       </div>

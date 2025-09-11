@@ -1,3 +1,5 @@
+import { Order } from "@/stores";
+
 // Interfaces para pedidos B2B - utilizadas en el sistema de pedidos B2B
 export interface B2BOrderItem {
   id?: string;
@@ -132,4 +134,63 @@ export interface CartItem {
   tax_rate?: number;
   tax_amount?: number;
   item_notes?: string;
+}
+
+
+
+export interface EmailNotificationPayload {
+  orderData: Order;
+  ownerEmail: string;
+}
+
+export interface B2BEmailOrderData {
+  order_number: string;
+  created_at: string;
+  order_status: string;
+  payment_status: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  customer_document: string;
+  subtotal: number;
+  tax_amount: number;
+  shipping_cost: number;
+  discount_amount: number;
+  total_amount: number;
+  payment_method: string;
+  currency: string;
+  notes: string;
+  delivery_address: string;
+  delivery_city: string;
+  delivery_state: string;
+  delivery_postal_code: string;
+  delivery_contact_name: string;
+  delivery_contact_phone: string;
+  delivery_notes: string;
+  payment_terms: string;
+  purchase_order_number: string;
+  priority_level: string;
+  internal_notes: string;
+  store_notes: string;
+  items: Array<{
+      product_sku: string;
+      product_name: string;
+      product_description: string;
+      product_image: string;
+      product_brand: string;
+      unit_price: number;
+      retail_price: number;
+      quantity: number;
+      total_price: number;
+      discount_percentage: number;
+      discount_amount: number;
+      tax_rate: number;
+      tax_amount: number;
+      item_notes: string;
+  }>;
+}
+
+export interface B2BEmailNotificationPayload {
+  orderData: B2BEmailOrderData;
+  ownerEmail: string;
 }

@@ -157,6 +157,7 @@ export const StorePage = () => {
         <div className="min-h-screen bg-gray-50">
             {/* Top Banner */}
             {storeProfile && <TopBanner storeProfile={storeProfile} />}
+            
             {/* Store Profile Section */}
             {storeProfile && <StoreProfileSection storeProfile={storeProfile} />}
 
@@ -180,6 +181,7 @@ export const StorePage = () => {
 
             {/* Public Store Link */}
             {storeProfile && <StoreLink getPublicStoreUrl={getPublicStoreUrl} />}
+            
             {/* Add Product Modal */}
             <AddProductModal
                 isOpen={isAddProductModalOpen}

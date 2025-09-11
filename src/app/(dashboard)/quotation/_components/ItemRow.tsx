@@ -6,6 +6,7 @@ import { Product } from '@/types/ecomerce';
 type ItemRowProps = {
   item: {
     productSku: string;
+    productName?: string;
     quantity: number;
     unitPrice: number;
     itemDiscount: number;
@@ -25,22 +26,21 @@ const ItemRow: React.FC<ItemRowProps> = ({
   onRemoveItem 
 }) => {
   const subtotal = (item.quantity * item.unitPrice) - (item.itemDiscount || 0);
+  
+  // Obtener el nombre del producto desde la lista de productos o usar el nombre almacenado
+  const productName = item.productName || products.find(p => p.SKU === item.productSku)?.Nombre || 'Producto no encontrado';
 
   return (
     <div key={`item-row-${index}`} className="grid grid-cols-12 gap-2 items-center">
       <div className="col-span-4">
-        <select
-          value={item.productSku}
-          onChange={(e) => onItemChange(index, 'productSku', e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded bg-gray-50 focus:outline-none focus:ring-1 focus:ring-red-500"
-        >
-          <option value="">Seleccionar producto</option>
-          {products.map((product) => (
-            <option key={product.SKU} value={product.SKU}>
-              {product.Nombre || 'Sin nombre'} - {product.SKU}
-            </option>
-          ))}
-        </select>
+        <div className="p-2 border border-gray-300 rounded bg-gray-50 min-h-[40px] flex flex-col justify-center">
+          <div className="text-sm font-medium text-gray-900">
+            {productName}
+          </div>
+          <div className="text-xs text-gray-500">
+            SKU: {item.productSku}
+          </div>
+        </div>
         <input
           type="text"
           value={item.itemNotes}

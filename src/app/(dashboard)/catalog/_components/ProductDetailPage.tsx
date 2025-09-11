@@ -7,6 +7,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Product } from '@/types/ecomerce';
 import { useRouter } from 'next/navigation';
+import { useB2BOrders } from '@/hooks/B2BOrders/useB2BOrders';
+import { useStoreProfile } from '@/hooks';
+import { useAuthStore } from '@/stores/authStore';
+import { useToastContext } from '@/components/providers/ToastProvider';
+import { CartItem } from '@/types/b2b-order';
+
 
 interface ProductDetailPageProps {
     product: Product;
@@ -19,7 +25,49 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
     const [selectedDiameter, setSelectedDiameter] = useState<string>('40mm');
     const [selectedWidth, setSelectedWidth] = useState<string>('8"');
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const { storeProfile } = useStoreProfile();
+    const { user } = useAuthStore();
+    const { success: showSuccess, error: showError } = useToastContext();
+    const storeId = storeProfile?.id ? Number(storeProfile.id) : undefined;
+    const ownerEmail = storeProfile?.email ? String(storeProfile.email) : 'dev@larefa.com';
+    const userEmail = user?.email;
+    const { addToCart, cart } = useB2BOrders(storeId, ownerEmail, storeProfile, userEmail);
 
+
+    const transformProductToCartItem = (product: Product): CartItem => {
+        const unitPrice = product.Precio || 0;
+        const ganancia = product.Ganancia || 0;
+        const precioConGanancia = ganancia > 0 ? unitPrice : unitPrice;
+
+        return {
+            product_sku: product.SKU,
+            product_name: product.Nombre || 'Sin nombre',
+            product_description: product.Descricpion || '',
+            product_image: product.Imagen || '',
+            product_brand: product.Marca || '',
+            unit_price: precioConGanancia,
+            retail_price: unitPrice,
+            quantity: 1,
+            total_price: precioConGanancia,
+            discount_percentage: 0,
+            discount_amount: 0,
+            tax_rate: 16, // IVA del 16%
+            tax_amount: precioConGanancia * 0.16,
+            item_notes: ''
+        };
+    };
+
+    const handleAddToCart = (product: Product) => {
+        if (!storeId) {
+            showError('No se pudo identificar la tienda');
+            return;
+        }
+
+        const cartItem = transformProductToCartItem(product);
+        addToCart(cartItem);
+        showSuccess(`${product.Nombre || 'Producto'} agregado al carrito`);
+    };
+    
     // Simular múltiples imágenes del producto
     const productImages = [
         product.Imagen || '/images/placeholder-product.jpg',
@@ -56,7 +104,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
                 <div className="flex items-center space-x-3">
                     <button
                         onClick={handleBack}
@@ -64,14 +112,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
                     >
                         <ArrowLeft className="w-5 h-5 text-gray-600" />
                     </button>
-                    <h1 className="text-lg font-semibold text-gray-800">Detalles del Producto</h1>
+                    <h1 className="text-base lg:text-lg font-semibold text-gray-800">Detalles del Producto</h1>
                 </div>
             </div>
 
-            <div className="max-w-4xl mx-auto px-6 py-8">
+            <div className="max-w-4xl mx-auto px-4 lg:px-6 py-4 lg:py-8">
                 <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                     {/* Product Image Carousel */}
-                    <div className="relative bg-gray-100 p-8">
+                    <div className="relative bg-gray-100 p-4 lg:p-8">
                         <div className="aspect-square max-w-2xl mx-auto">
                             <img
                                 src={productImages[currentImageIndex]}
@@ -81,7 +129,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
                         </div>
                         
                         {/* Image Pagination */}
-                        <div className="flex justify-center space-x-2 mt-6">
+                        <div className="flex justify-center space-x-2 mt-4 lg:mt-6">
                             {productImages.map((_, index) => (
                                 <button
                                     key={index}
@@ -97,34 +145,34 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
                     </div>
 
                     {/* Product Details */}
-                    <div className="p-8 space-y-6">
+                    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6">
                         {/* Product Title and Basic Info */}
-                        <div className="flex justify-between items-start">
+                        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start space-y-4 lg:space-y-0">
                             <div className="space-y-2">
-                                <h2 className="text-3xl font-bold text-gray-800">
+                                <h2 className="text-xl lg:text-3xl font-bold text-gray-800">
                                     {product.Nombre || "Product Name"}
                                 </h2>
-                                <p className="text-gray-600">
+                                <p className="text-sm lg:text-base text-gray-600">
                                     SKU: {product.SKU || "SKU-00000"}
                                 </p>
-                                <p className="text-gray-600">
+                                <p className="text-sm lg:text-base text-gray-600">
                                     Marca: <span className="text-orange-500 font-semibold">
                                         {product.Marca || "Marca"}
                                     </span>
                                 </p>
                             </div>
-                            <div className="text-right space-y-2">
-                                <Badge className="bg-green-500 text-white px-3 py-1">
+                            <div className="flex flex-col lg:items-end space-y-2">
+                                <Badge className="bg-green-500 text-white px-3 py-1 w-fit">
                                     En Stock
                                 </Badge>
-                                <div className="text-2xl font-bold text-red-500">
+                                <div className="text-xl lg:text-2xl font-bold text-red-500">
                                     ${product.Precio?.toFixed(2) || "0.00"}
                                 </div>
                             </div>
                         </div>
 
                         {/* Key Benefits */}
-                        <div>
+                       {/*  <div>
                             <h3 className="text-xl font-bold text-gray-800 mb-4">Beneficios Clave</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {keyBenefits.map((benefit, index) => (
@@ -139,16 +187,16 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        </div>*/}
 
                         {/* Product Options */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {/* Color Selection */}
-                            <div>
+                           {/*  <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Color
                                 </label>
-                                <div className="relative">
+                               { <div className="relative">
                                     <select
                                         value={selectedColor}
                                         onChange={(e) => setSelectedColor(e.target.value)}
@@ -162,11 +210,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
                                         ))}
                                     </select>
                                     <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                                </div>
-                            </div>
+                                </div>}
+                            </div>*/}
 
                             {/* Diameter Selection */}
-                            <div>
+                           {/*  <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Diámetro
                                 </label>
@@ -185,10 +233,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
                                         </button>
                                     ))}
                                 </div>
-                            </div>
+                            </div>*/}
 
                             {/* Width Selection */}
-                            <div>
+                           {/*  <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Ancho
                                 </label>
@@ -207,14 +255,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
                                         </button>
                                     ))}
                                 </div>
-                            </div>
+                            </div>*/}
                         </div>
 
                         {/* Product Info Card */}
                         <Card className="bg-gray-50 border-gray-200">
-                            <CardContent className="p-6">
+                            <CardContent className="p-4 lg:p-6">
                                 <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-xl font-bold text-gray-800">Información del Producto</h3>
+                                    <h3 className="text-lg lg:text-xl font-bold text-gray-800">Información del Producto</h3>
                                     <button className="p-1 hover:bg-gray-200 rounded">
                                         <span className="text-gray-600 text-xl">⋮</span>
                                     </button>
@@ -222,7 +270,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
                                 
                                 <div className="space-y-4">
                                     {/* Compatibility */}
-                                    <div className="flex items-start space-x-3">
+                                    {/*<div className="flex items-start space-x-3">
                                         <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
                                             <Check className="w-4 h-4 text-white" />
                                         </div>
@@ -232,7 +280,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
                                                 Toyota Corolla 2017-2022 (Delantero)
                                             </p>
                                         </div>
-                                    </div>
+                                    </div>*/}
 
                                     {/* Warranty */}
                                     <div className="flex items-start space-x-3">
@@ -264,17 +312,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, o
                         </Card>
 
                         {/* Action Buttons */}
-                        <div className="flex flex-col sm:flex-row gap-4 pt-6">
+                        <div className="flex flex-col sm:flex-row gap-4 pt-4 lg:pt-6">
                             <Button
                                 variant="outline"
                                 className="flex-1 border-red-500 text-red-500 hover:bg-red-50 py-3"
+                                onClick={() => handleAddToCart(product)}
                             >
                                 <Plus className="w-5 h-5 mr-2" />
                                 Agregar al Carrito
-                            </Button>
-                            <Button className="flex-1 bg-red-500 hover:bg-red-600 py-3">
-                                <Plus className="w-5 h-5 mr-2" />
-                                Agregar a Mi Tienda
                             </Button>
                         </div>
                     </div>

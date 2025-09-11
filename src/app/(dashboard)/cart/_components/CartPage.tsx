@@ -110,7 +110,6 @@ export const CartPage = () => {
                 showError('Error al crear el pedido');
             }
         } catch (error) {
-            console.error('Error creating order:', error);
             showError('Error al crear el pedido');
         } finally {
             setIsSubmitting(false);
@@ -226,7 +225,7 @@ export const CartPage = () => {
                 ordersCount={orders.length}
             />
 
-            <div className="py-6">
+            <div className="py-4 lg:py-6">
                 {activeTabContent}
             </div>
 

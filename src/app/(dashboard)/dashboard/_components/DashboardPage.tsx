@@ -10,14 +10,14 @@ export const DashboardPage = () => {
     const { person } = usePerson();
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-7xl mx-auto space-y-8">
+        <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
+            <div className="max-w-7xl mx-auto space-y-6 lg:space-y-8">
                 {/* Header del Dashboard */}
                 <div className="text-center lg:text-left">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
                         Bienvenido al Dashboard {person?.name} {person?.last_name}
                     </h1>
-                    <p className="text-lg text-gray-600">
+                    <p className="text-base lg:text-lg text-gray-600">
                         Gestiona tu tienda y monitorea el rendimiento
                     </p>
                 </div>

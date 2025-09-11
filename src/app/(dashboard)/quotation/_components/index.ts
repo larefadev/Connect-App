@@ -3,6 +3,9 @@ export { default as QuotationPage } from './QuotationPage';
 export { default as QuotationForm } from './QuotationForm';
 export { default as HistoryView } from './HistoryView';
 
+// Modales
+export { AddProductToQuoteModal } from './AddProductToQuoteModal';
+
 // Componentes de UI
 export { default as QuotationHeader } from './QuotationHeader';
 export { default as QuotationTabs } from './QuotationTabs';

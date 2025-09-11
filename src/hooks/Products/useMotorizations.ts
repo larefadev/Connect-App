@@ -29,7 +29,6 @@ export const useMotorizations = (): UseMotorizationsReturn => {
 
       if (supabaseError) throw supabaseError;
       
-      console.log('Motorizations data:', data);
       setMotorizations(data || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar motorizaciones');

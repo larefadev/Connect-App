@@ -250,11 +250,6 @@ export const useProducts = (): UseProductsReturn => {
     
     let filtered = [...products];
     
-    // Debug: mostrar valores únicos de ensambladora en los productos
-    if (filters.assemblyPlant) {
-      const uniqueAssemblyPlants = [...new Set(products.map(p => p.Ensambladora).filter(Boolean))];
-      console.log('Ensambladoras disponibles en productos:', uniqueAssemblyPlants);
-    }
 
     // Filtro por categoría
     if (filters.categoria) {
@@ -303,12 +298,9 @@ export const useProducts = (): UseProductsReturn => {
 
     // Filtro por ensambladora
     if (filters.assemblyPlant) {
-      console.log('Filtrando por ensambladora:', filters.assemblyPlant);
-      const beforeCount = filtered.length;
       filtered = filtered.filter(product => 
         product.Ensambladora === filters.assemblyPlant
       );
-      console.log(`Productos antes: ${beforeCount}, después: ${filtered.length}`);
     }
 
     // Filtro por modelo

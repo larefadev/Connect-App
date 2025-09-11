@@ -29,7 +29,6 @@ export const useAssemblyPlants = (): UseAssemblyPlantsReturn => {
 
       if (supabaseError) throw supabaseError;
       
-      console.log('Assembly plants data:', data);
       setAssemblyPlants(data || []);
     } catch (err) {
       console.error('Error loading assembly plants:', err);

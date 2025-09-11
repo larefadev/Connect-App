@@ -215,19 +215,19 @@ export const AddProductToCartModal = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b">
-                    <h2 className="text-2xl font-bold">Agregar Productos al Carrito</h2>
+                <div className="flex items-center justify-between p-4 lg:p-6 border-b">
+                    <h2 className="text-lg lg:text-2xl font-bold">Agregar Productos al Carrito</h2>
                     <Button variant="ghost" size="sm" onClick={onClose}>
-                        <X className="w-5 h-5" />
+                        <X className="w-4 h-4 lg:w-5 lg:h-5" />
                     </Button>
                 </div>
 
                 {/* Search and Filters */}
-                <div className="p-6 border-b bg-gray-50">
-                    <div className="flex gap-4 mb-4">
+                <div className="p-4 lg:p-6 border-b bg-gray-50">
+                    <div className="flex flex-col sm:flex-row gap-3 lg:gap-4 mb-4">
                         <div className="flex-1">
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -235,65 +235,68 @@ export const AddProductToCartModal = ({
                                     placeholder="Buscar productos..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10"
+                                    className="pl-10 text-sm lg:text-base"
                                 />
                             </div>
                         </div>
-                        <select
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                        >
-                            <option value="">Todas las categorías</option>
-                            {categories.map((category) => (
-                                <option key={category.Codigo} value={category.Codigo}>
-                                    {category.Nombre || category.Categoria}
-                                </option>
-                            ))}
-                        </select>
-                        <select
-                            value={productsPerPage}
-                            onChange={(e) => {
-                                setProductsPerPage(Number(e.target.value));
-                                setCurrentPage(1);
-                            }}
-                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                        >
-                            <option value={10}>10 por página</option>
-                            <option value={20}>20 por página</option>
-                            <option value={50}>50 por página</option>
-                            <option value={100}>100 por página</option>
-                        </select>
+                        <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
+                            <select
+                                value={selectedCategory}
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-sm lg:text-base"
+                            >
+                                <option value="">Todas las categorías</option>
+                                {categories.map((category) => (
+                                    <option key={category.Codigo} value={category.Codigo}>
+                                        {category.Nombre || category.Categoria}
+                                    </option>
+                                ))}
+                            </select>
+                            <select
+                                value={productsPerPage}
+                                onChange={(e) => {
+                                    setProductsPerPage(Number(e.target.value));
+                                    setCurrentPage(1);
+                                }}
+                                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-sm lg:text-base"
+                            >
+                                <option value={10}>10 por página</option>
+                                <option value={20}>20 por página</option>
+                                <option value={50}>50 por página</option>
+                                <option value={100}>100 por página</option>
+                            </select>
+                        </div>
                     </div>
 
                     {selectedProducts.size > 0 && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-sm font-medium text-blue-800">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 lg:p-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                                <span className="text-xs lg:text-sm font-medium text-blue-800">
                                     {selectedProducts.size} producto(s) seleccionado(s)
                                 </span>
-                                <Button variant="outline" size="sm" onClick={handleClearSelection} className="text-blue-600 border-blue-300 hover:bg-blue-100">
+                                <Button variant="outline" size="sm" onClick={handleClearSelection} className="text-blue-600 border-blue-300 hover:bg-blue-100 w-full sm:w-auto">
                                     Limpiar Selección
                                 </Button>
                             </div>
-                            <div className="text-xs text-blue-600">
+                            <div className="text-xs lg:text-sm text-blue-600">
                                 Los productos seleccionados se agregarán al carrito. Puedes continuar seleccionando más productos o ir directamente al checkout.
                             </div>
                         </div>
                     )}
 
                     {filteredProducts.length > productsPerPage && (
-                        <div className="px-6 py-4 border-t bg-gray-50">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-2">
+                        <div className="px-4 lg:px-6 py-3 lg:py-4 border-t bg-gray-50">
+                            <div className="flex items-center justify-center">
+                                <div className="flex items-center space-x-1 lg:space-x-2">
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handlePageChange(currentPage - 1)}
                                         disabled={currentPage === 1}
-                                        className="px-3 py-1"
+                                        className="px-2 lg:px-3 py-1 text-xs lg:text-sm"
                                     >
-                                        Anterior
+                                        <span className="hidden sm:inline">Anterior</span>
+                                        <span className="sm:hidden">‹</span>
                                     </Button>
                                     
                                     <div className="flex items-center space-x-1">
@@ -315,7 +318,7 @@ export const AddProductToCartModal = ({
                                                     variant={currentPage === pageNum ? "default" : "outline"}
                                                     size="sm"
                                                     onClick={() => handlePageChange(pageNum)}
-                                                    className="px-3 py-1 min-w-[40px]"
+                                                    className="px-2 lg:px-3 py-1 min-w-[32px] lg:min-w-[40px] text-xs lg:text-sm"
                                                 >
                                                     {pageNum}
                                                 </Button>
@@ -328,9 +331,10 @@ export const AddProductToCartModal = ({
                                         size="sm"
                                         onClick={() => handlePageChange(currentPage + 1)}
                                         disabled={currentPage === totalPages}
-                                        className="px-3 py-1"
+                                        className="px-2 lg:px-3 py-1 text-xs lg:text-sm"
                                     >
-                                        Siguiente
+                                        <span className="hidden sm:inline">Siguiente</span>
+                                        <span className="sm:hidden">›</span>
                                     </Button>
                                 </div>
                             </div>
@@ -339,21 +343,21 @@ export const AddProductToCartModal = ({
                 </div>
 
                 {/* Products Grid */}
-                <div className="p-6 overflow-y-auto max-h-[60vh] modal-content">
+                <div className="p-4 lg:p-6 overflow-y-auto max-h-[60vh] modal-content">
                     {productsLoading ? (
-                        <div className="text-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                            <p className="text-gray-600">Cargando productos...</p>
+                        <div className="text-center py-6 lg:py-8">
+                            <div className="animate-spin rounded-full h-6 w-6 lg:h-8 lg:w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                            <p className="text-sm lg:text-base text-gray-600">Cargando productos...</p>
                         </div>
                     ) : filteredProducts.length === 0 ? (
-                        <div className="text-center py-8">
-                            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron productos</h3>
-                            <p className="text-gray-500">Intenta ajustar los filtros de búsqueda</p>
+                        <div className="text-center py-6 lg:py-8">
+                            <Package className="w-12 h-12 lg:w-16 lg:h-16 text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-base lg:text-lg font-medium text-gray-900 mb-2">No se encontraron productos</h3>
+                            <p className="text-sm lg:text-base text-gray-500">Intenta ajustar los filtros de búsqueda</p>
                         </div>
                     ) : (
                         <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
                                 {currentProducts.map((product) => {
                                     const selectedQuantity = selectedProducts.get(product.SKU) || 0;
                                     
@@ -375,12 +379,12 @@ export const AddProductToCartModal = ({
                                         }
                                     }}
                                 >
-                                            <CardContent className="p-4">
+                                            <CardContent className="p-3 lg:p-4">
                                                 <div className="flex items-start justify-between mb-3">
                                                     <ProductImage
                                                         src={product.Imagen}
                                                         alt={product.Nombre || 'Producto'}
-                                                        className="w-16 h-16 object-cover rounded-lg"
+                                                        className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg"
                                                     />
                                                     <Button
                                                         variant="ghost"
@@ -395,11 +399,11 @@ export const AddProductToCartModal = ({
                                                         }}
                                                         className="p-1 h-auto"
                                                     >
-                                                        <Plus className="w-4 h-4 text-red-500" />
+                                                        <Plus className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />
                                                     </Button>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <h4 className="font-medium text-sm">{product.Nombre}</h4>
+                                                    <h4 className="font-medium text-xs sm:text-sm truncate">{product.Nombre}</h4>
                                                     <p className="text-xs text-gray-600">Marca: {product.Marca}</p>
                                                     <p className="text-xs text-gray-600">
                                                         Categoría: {product.Categoria}
@@ -410,7 +414,7 @@ export const AddProductToCartModal = ({
                                                         </p>
                                                     )}
                                                     <div className="flex items-center justify-between">
-                                                        <span className="text-sm font-medium">
+                                                        <span className="text-xs sm:text-sm font-medium">
                                                             ${product.Precio?.toFixed(2) || '0.00'}
                                                         </span>
                                                         <Badge variant="outline" className="text-xs">
@@ -462,26 +466,27 @@ export const AddProductToCartModal = ({
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t bg-gray-50 flex justify-between">
+                <div className="p-4 lg:p-6 border-t bg-gray-50 flex flex-col sm:flex-row sm:justify-between gap-3">
                     <div>
                         {selectedProducts.size > 0 && (
                             <Button 
                                 variant="outline"
                                 onClick={handleAddSelectedProducts}
+                                className="w-full sm:w-auto"
                             >
                                 <ShoppingCart className="w-4 h-4 mr-2" />
                                 Agregar {selectedProducts.size} Producto(s)
                             </Button>
                         )}
                     </div>
-                    <div className="flex gap-3">
-                        <Button variant="outline" onClick={onClose}>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
                             Cancelar
                         </Button>
                         {selectedProducts.size > 0 && (
                             <Button 
                                 onClick={handleGoToCheckout}
-                                className="bg-red-600 hover:bg-red-700"
+                                className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
                             >
                                 <ShoppingCart className="w-4 h-4 mr-2" />
                                 Ir al Checkout

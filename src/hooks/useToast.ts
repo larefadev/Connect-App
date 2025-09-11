@@ -106,7 +106,6 @@ export const useToast = () => {
         label: 'Ver Pedido',
         onClick: () => {
           // Aquí podrías navegar a la página del pedido
-          console.log('Navegar al pedido:', orderNumber);
         }
       }
     });
@@ -120,7 +119,6 @@ export const useToast = () => {
         label: 'Reintentar',
         onClick: () => {
           // Aquí podrías implementar la lógica de reintento
-          console.log('Reintentando operación...');
         }
       }
     });

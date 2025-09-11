@@ -201,15 +201,15 @@ export const B2BCheckoutModal = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 sm:p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
-                    <div className="flex items-center gap-3">
-                        <Building2 className="w-6 h-6 text-red-600" />
+                <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
                         <div>
-                            <h3 className="text-lg font-semibold">Checkout B2B</h3>
-                            <p className="text-sm text-gray-600">Información de entrega y pago</p>
+                            <h3 className="text-base sm:text-lg font-semibold">Checkout B2B</h3>
+                            <p className="text-xs sm:text-sm text-gray-600">Información de entrega y pago</p>
                         </div>
                     </div>
                     <Button
@@ -218,15 +218,15 @@ export const B2BCheckoutModal = ({
                         onClick={handleClose}
                         className="p-1"
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-4 h-4 sm:w-5 sm:h-5" />
                     </Button>
                 </div>
 
                 {/* Progress Steps */}
-                <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50 flex-shrink-0">
+                <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b bg-gray-50 flex-shrink-0">
                     {['delivery-info', 'payment-info'].map((stepName, index) => (
                         <div key={stepName} className="flex items-center">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
                                 step === stepName 
                                     ? 'bg-red-600 text-white' 
                                     : step === 'confirmation' || ['delivery-info', 'payment-info'].indexOf(step) > index
@@ -236,7 +236,7 @@ export const B2BCheckoutModal = ({
                                 {index + 1}
                             </div>
                             {index < 1 && (
-                                <div className={`w-16 h-1 mx-2 ${
+                                <div className={`w-12 sm:w-16 h-1 mx-1 sm:mx-2 ${
                                     ['delivery-info', 'payment-info'].indexOf(step) > index
                                         ? 'bg-green-500'
                                         : 'bg-gray-200'
@@ -248,20 +248,20 @@ export const B2BCheckoutModal = ({
 
                 {/* Contenido con scroll mejorado */}
                 <div 
-                    className="flex-1 overflow-y-auto p-4 custom-scrollbar" 
+                    className="flex-1 overflow-y-auto p-3 sm:p-4 custom-scrollbar" 
                     style={{
                         scrollbarWidth: 'thin',
                         scrollbarColor: '#cbd5e1 #f1f5f9'
                     }}
                 >
                     {step === 'delivery-info' && (
-                        <div className="space-y-6">
+                        <div className="space-y-4 sm:space-y-6">
                             <div>
-                                <h4 className="text-lg font-medium mb-4">Información de Entrega</h4>
+                                <h4 className="text-base sm:text-lg font-medium mb-3 sm:mb-4">Información de Entrega</h4>
                                 
-                                <div className="space-y-4">
+                                <div className="space-y-3 sm:space-y-4">
                                     <div>
-                                        <Label htmlFor="delivery_address">Dirección de Entrega *</Label>
+                                        <Label htmlFor="delivery_address" className="text-sm sm:text-base">Dirección de Entrega *</Label>
                                         <Textarea
                                             id="delivery_address"
                                             value={formData.delivery_address}
@@ -269,10 +269,11 @@ export const B2BCheckoutModal = ({
                                             placeholder="Dirección completa"
                                             rows={3}
                                             required
+                                            className="text-sm sm:text-base"
                                         />
                                     </div>
                                     
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                                         <div>
                                             <Label htmlFor="delivery_city">Ciudad *</Label>
                                             <Input

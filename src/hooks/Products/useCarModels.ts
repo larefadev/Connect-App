@@ -33,7 +33,6 @@ export const useCarModels = (): UseCarModelsReturn => {
 
       if (supabaseError) throw supabaseError;
       
-      console.log('Car models data:', data);
       setCarModels(data || []);
     } catch (err) {
       console.error('Error loading car models:', err);
