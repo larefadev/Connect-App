@@ -56,7 +56,7 @@ const ItemsSection: React.FC<ItemsSectionProps> = ({
         ) : (
           <div className="text-center py-8 text-gray-500">
             <p>No hay productos en la cotización</p>
-            <p className="text-sm">Usa el botón "Agregar Productos" para comenzar</p>
+            <p className="text-sm">Usa el botón &quot;Agregar Productos&quot; para comenzar</p>
           </div>
         )}
 
