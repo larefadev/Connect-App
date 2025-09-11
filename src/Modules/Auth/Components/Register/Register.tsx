@@ -75,14 +75,14 @@ export const Register = () => {
   }
   
   return (
-    <div className="w-full max-w-md">
-      <form className="space-y-4" onSubmit={handleSubmit}>
+    <div className="w-full max-w-md mx-auto">
+      <form className="space-y-3 sm:space-y-4" onSubmit={handleSubmit}>
         <input
           type="text"
           placeholder="Nombre de usuario"
           value={formData.username}
           onChange={(e=> handleInputChange('username', e.target.value))}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
           disabled={isLoading}
         />
         <input
@@ -90,7 +90,7 @@ export const Register = () => {
           value={formData.email}
           onChange={(e=> handleInputChange('email', e.target.value))}
           placeholder="Correo electrónico"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
           disabled={isLoading}
         />
         <input
@@ -98,7 +98,7 @@ export const Register = () => {
           placeholder="Contraseña"
           value={formData.password}
           onChange={(e=> handleInputChange('password', e.target.value))}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
           disabled={isLoading}
         />
         <input
@@ -106,20 +106,20 @@ export const Register = () => {
           placeholder="Confirmar contraseña"
           value={formData.confirmPassword}
           onChange={ (e) => handleInputChange('confirmPassword', e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
           disabled={isLoading}
         />
         
-        <div className="flex items-center text-sm mt-2">
-          <input type="checkbox" id="terms" className="mr-2" required />
-          <label htmlFor="terms">
+        <div className="flex items-start text-xs sm:text-sm mt-2 space-x-2">
+          <input type="checkbox" id="terms" className="mt-1 flex-shrink-0" required />
+          <label htmlFor="terms" className="leading-relaxed">
             Acepto los <span className="text-red-500 underline">Términos y Condiciones</span>
           </label>
         </div>
         
         <button
           type="submit"
-          className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-lg mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 sm:py-3 rounded-lg mt-3 sm:mt-4 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
           disabled={isLoading}
         >
           {isLoading ? 'Registrando...' : 'Registrarme'}
