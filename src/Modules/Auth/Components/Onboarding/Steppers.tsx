@@ -48,9 +48,9 @@ export const Steppers = () => {
     
 
     return (
-        <div className="flex items-center justify-center p-4 h-screen">
-            <div className="flex flex-row justify-center">
-                <div>
+        <div className="flex items-center justify-center p-4 h-full min-h-screen lg:min-h-0">
+            <div className="flex flex-row justify-center w-full max-w-2xl">
+                <div className="w-full">
                     <Step stepInformation={dataStep[currentStep]} />
                     {stepPointer()}
                 </div>
