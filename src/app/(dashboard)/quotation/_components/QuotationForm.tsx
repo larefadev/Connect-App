@@ -15,7 +15,6 @@ type QuotationFormProps = {
     clientPhone: string;
     clientEmail: string;
     companyName: string;
-    companyAddress: string;
     companyPhone: string;
     companyEmail: string;
     quoteDate: string;
@@ -24,6 +23,7 @@ type QuotationFormProps = {
     termsConditions: string;
     items: Array<{
       productSku: string;
+      productName?: string;
       quantity: number;
       unitPrice: number;
       itemDiscount: number;
@@ -32,8 +32,8 @@ type QuotationFormProps = {
   };
   onInputChange: (field: string, value: string | number) => void;
   onItemChange: (index: number, field: string, value: string | number) => void;
-  onAddItem: () => void;
   onRemoveItem: (index: number) => void;
+  onOpenAddProductModal: () => void;
   isSubmitting: boolean;
   onCreateQuote: () => Promise<void>;
   products: Product[];
@@ -43,8 +43,8 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
   form,
   onInputChange,
   onItemChange,
-  onAddItem,
   onRemoveItem,
+  onOpenAddProductModal,
   isSubmitting,
   onCreateQuote,
   products
@@ -76,10 +76,9 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
   // Memoizar datos de la empresa
   const companyData = useMemo(() => ({
     companyName: form.companyName,
-    companyAddress: form.companyAddress,
     companyPhone: form.companyPhone,
     companyEmail: form.companyEmail
-  }), [form.companyName, form.companyAddress, form.companyPhone, form.companyEmail]);
+  }), [form.companyName, form.companyPhone, form.companyEmail]);
 
   // Memoizar datos de fechas
   const datesData = useMemo(() => ({
@@ -112,8 +111,8 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
         items={form.items}
         products={products}
         onItemChange={onItemChange}
-        onAddItem={onAddItem}
         onRemoveItem={onRemoveItem}
+        onOpenAddProductModal={onOpenAddProductModal}
       />
 
       <NotesSection 

@@ -72,7 +72,7 @@ export const useVerifyCode = () => {
                 setTimeout(() => handleVerify(digits.join("")), 100)
             }
         }).catch((e) => {
-            console.log(e)
+            // Error al leer el portapapeles
         })
     }
 

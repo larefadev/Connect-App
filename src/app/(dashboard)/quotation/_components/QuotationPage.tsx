@@ -14,6 +14,7 @@ import QuotationHeader from './QuotationHeader';
 import QuotationTabs from './QuotationTabs';
 import QuotationForm from './QuotationForm';
 import HistoryView from './HistoryView';
+import { AddProductToQuoteModal } from './AddProductToQuoteModal';
 
 // -----------------
 // Main component
@@ -23,10 +24,11 @@ const QuotationPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('quotation');
   const [selectedQuote, setSelectedQuote] = useState<ProductQuote | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { person } = usePerson();
+  const { person, loading: personLoading } = usePerson();
   const { address } = useAddress(person?.Address?.id || 0);
   const email = useAuthStore((state) => state.user);
 
@@ -39,17 +41,23 @@ const QuotationPage: React.FC = () => {
     companyName: '',
     companyEmail: '',
     companyPhone: '',
-    companyAddress: '',
     quoteDate: new Date().toISOString().split('T')[0],
     expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     notes: '',
     termsConditions: 'Esta cotización es válida por 30 días desde la fecha de emisión.',
-    items: [{ quantity: 1, unitPrice: 0, productSku: '', itemDiscount: 0, itemNotes: '' }]
+    items: [] as Array<{
+      productSku: string;
+      productName: string;
+      quantity: number;
+      unitPrice: number;
+      itemDiscount: number;
+      itemNotes: string;
+    }>
   }), []);
 
   const [form, setForm] = useState(initialForm);
 
-  const { products } = useProducts();
+  const { products, categories, loading: productsLoading } = useProducts();
   const { generateAndDownloadPDF } = useQuotePDF();
   const { storeProfile, loading: storeProfileLoading } = useStoreProfile();
 
@@ -71,11 +79,13 @@ const QuotationPage: React.FC = () => {
         ...prev,
         companyName: String(storeProfile.name || prev.companyName),
         companyEmail: String(email?.email || prev.companyEmail),
-        companyPhone: String(storeProfile.phone || prev.companyPhone),
-        companyAddress: String(address?.street || prev.companyAddress)
+        companyPhone: String(storeProfile.phone || prev.companyPhone)
       }));
     }
-  }, [storeProfile, storeProfileLoading, email?.email, address?.street]);
+  }, [storeProfile, storeProfileLoading, email?.email]);
+
+  // Los campos de cliente permanecen vacíos por defecto
+  // No se autocompletan con datos de la sesión
 
   // Memoizar handlers para evitar re-renders innecesarios
   const handleInputChange = useCallback((field: string, value: string | number) => {
@@ -98,17 +108,10 @@ const QuotationPage: React.FC = () => {
     });
   }, [products]);
 
-  const addItem = useCallback(() => {
-    setForm(prev => ({ 
-      ...prev, 
-      items: [...prev.items, { quantity: 1, unitPrice: 0, productSku: '', itemDiscount: 0, itemNotes: '' }] 
-    }));
-  }, []);
-
   const removeItem = useCallback((index: number) => {
     setForm(prev => ({ 
       ...prev, 
-      items: prev.items.length > 1 ? prev.items.filter((_, i: number) => i !== index) : prev.items 
+      items: prev.items.filter((_, i: number) => i !== index)
     }));
   }, []);
 
@@ -128,8 +131,7 @@ const QuotationPage: React.FC = () => {
       company: {
         name: form.companyName,
         email: form.companyEmail,
-        phone: form.companyPhone,
-        address: form.companyAddress
+        phone: form.companyPhone
       },
       items: form.items.map((item) => ({
         quantity: item.quantity,
@@ -204,6 +206,24 @@ const QuotationPage: React.FC = () => {
     }
   }, [generateAndDownloadPDF]);
 
+  // Manejar apertura del modal de agregar productos
+  const handleOpenAddProductModal = useCallback(() => {
+    setIsAddProductModalOpen(true);
+  }, []);
+
+  // Manejar cierre del modal de agregar productos
+  const handleCloseAddProductModal = useCallback(() => {
+    setIsAddProductModalOpen(false);
+  }, []);
+
+  // Manejar agregar producto a la cotización
+  const handleAddToQuote = useCallback((item: { productSku: string; productName: string; quantity: number; unitPrice: number; itemDiscount: number; itemNotes: string }) => {
+    setForm(prev => ({
+      ...prev,
+      items: [...prev.items, item]
+    }));
+  }, []);
+
   // Memoizar el contenido de la pestaña activa para evitar re-renders innecesarios
   const activeTabContent = useMemo(() => {
     if (activeTab === 'quotation') {
@@ -212,8 +232,8 @@ const QuotationPage: React.FC = () => {
           form={form}
           onInputChange={handleInputChange}
           onItemChange={handleItemChange}
-          onAddItem={addItem}
           onRemoveItem={removeItem}
+          onOpenAddProductModal={handleOpenAddProductModal}
           isSubmitting={isSubmitting}
           onCreateQuote={handleCreateQuote}
           products={products}
@@ -240,8 +260,8 @@ const QuotationPage: React.FC = () => {
     form, 
     handleInputChange, 
     handleItemChange, 
-    addItem, 
     removeItem, 
+    handleOpenAddProductModal,
     isSubmitting, 
     handleCreateQuote, 
     products, 
@@ -277,6 +297,16 @@ const QuotationPage: React.FC = () => {
         onClose={closePreviewModal}
         onEdit={handleEditQuote}
         onStatusChange={handleStatusChange}
+      />
+
+      {/* Modal para agregar productos */}
+      <AddProductToQuoteModal
+        isOpen={isAddProductModalOpen}
+        onClose={handleCloseAddProductModal}
+        products={products}
+        categories={categories}
+        productsLoading={productsLoading}
+        onAddToQuote={handleAddToQuote}
       />
     </div>
   );

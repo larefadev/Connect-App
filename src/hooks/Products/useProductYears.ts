@@ -23,14 +23,11 @@ export const useProductYears = (): UseProductYearsReturn => {
         .select('Año');
 
       if (supabaseError) throw supabaseError;
-      
-      console.log('Years data:', data);
       // Extraer años únicos y ordenarlos
       const uniqueYears = Array.from(
         new Set(data?.map((item: any) => item.Año).filter(Boolean))
       ).sort((a, b) => b.localeCompare(a));
       
-      console.log('Unique years:', uniqueYears);
       setYears(uniqueYears);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar años');

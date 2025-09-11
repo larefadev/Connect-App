@@ -148,9 +148,45 @@ const SelectField = ({
     </select>
 )
 
+const InputRadio = ({
+    label,
+    options,
+    value,
+    onChange,
+    icon: Icon
+}: {
+    label: string
+    options: { value: string; label: string }[]
+    value: string
+    onChange: (value: string) => void
+    icon?: React.ComponentType<{ className?: string }>
+}) => (
+    <div className="space-y-3">
+        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+            {Icon && <Icon className="w-4 h-4 text-red-500" />}
+            {label}
+        </label>
+        <div className="flex gap-6">
+            {options.map((option) => (
+                <label key={option.value} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="radio"
+                        name="rfc-option"
+                        value={option.value}
+                        checked={value === option.value}
+                        onChange={(e) => onChange(e.target.value)}
+                        className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                    />
+                    <span className="text-sm text-gray-700">{option.label}</span>
+                </label>
+            ))}
+        </div>
+    </div>
+)
+
 const SetUp = () => {
     const [storeType, setStoreType] = useState("Local")
-    const [rfcType] = useState("own")
+    const [hasRfc, setHasRfc] = useState("")
     const [uploadingFiles, setUploadingFiles] = useState({ logo: false, banner: false })
     const { handleStoreSetup, userData } = useRegistrationFlow();
     const { loading: citiesLoading, getCityOptions } = useCities();
@@ -303,18 +339,17 @@ const SetUp = () => {
                     <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Store className="w-8 h-8 text-red-600" />
                     </div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-3">Configura tu tienda</h2>
-                    <p className="text-gray-600 text-lg mb-4">Crea tu tienda de autopartes en línea en minutos.</p>
-                    <p className="text-gray-500">Personaliza tu marca y comienza a vender sin inventario.</p>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">Cuentanos sobre ti</h2>
+                    <p className="text-gray-600 text-lg mb-4">Queremos conocerte para poderte ayudar mejor.</p>
                 </header>
 
-                <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+              {  /**<section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
                     <UploadArea type="logo" formData={formData} uploadingFiles={uploadingFiles} handleFileSelect={handleFileSelect} />
                     <UploadArea type="banner" formData={formData} uploadingFiles={uploadingFiles} handleFileSelect={handleFileSelect} />
-                </section>
+                </section>*/}
 
                 <section className="space-y-6 mb-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/**<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <FormSection label="Nombre de tu tienda" icon={Store}>
                             <InputField
                                 placeholder="Ej: AutoPartes Express"
@@ -333,7 +368,7 @@ const SetUp = () => {
                                 icon={Globe}
                             />
                         </FormSection>
-                    </div>
+                    </div>*/}
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <FormSection label="Número de teléfono" icon={Phone}>
@@ -423,7 +458,20 @@ const SetUp = () => {
                     </FormSection>
                 </section>
 
-                {rfcType === "own" && (
+                <section className="mb-8">
+                    <InputRadio
+                        label="¿Tienes RFC?"
+                        options={[
+                            { value: "yes", label: "Sí, tengo RFC" },
+                            { value: "no", label: "No, no tengo RFC" }
+                        ]}
+                        value={hasRfc}
+                        onChange={setHasRfc}
+                        icon={FileText}
+                    />
+                </section>
+
+                {hasRfc === "yes" && (
                     <section className="mb-8">
                         <FormSection label="Número de RFC" icon={FileText}>
                             <InputField

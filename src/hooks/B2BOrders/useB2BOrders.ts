@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import supabase from '@/lib/Supabase';
 import emailNotificationService from '@/services/orders/emailNotification.service';
 import { 
@@ -70,11 +72,69 @@ const transformB2BOrderForEmail = (order: B2BOrder, storeProfile?: any, userEmai
   } as const;
 };
 
+// Store de Zustand para el carrito B2B con persistencia
+interface B2BCartStore {
+  cart: CartItem[];
+  addToCart: (item: CartItem) => void;
+  updateCartItemQuantity: (productSku: string, quantity: number) => void;
+  removeFromCart: (productSku: string) => void;
+  clearCart: () => void;
+}
+
+const useB2BCartStore = create<B2BCartStore>()(
+  persist(
+    (set, get) => ({
+      cart: [],
+      addToCart: (item: CartItem) => {
+        set((state) => {
+          const existingItem = state.cart.find(cartItem => cartItem.product_sku === item.product_sku);
+          if (existingItem) {
+            return {
+              cart: state.cart.map(cartItem =>
+                cartItem.product_sku === item.product_sku
+                  ? { ...cartItem, quantity: cartItem.quantity + item.quantity }
+                  : cartItem
+              )
+            };
+          }
+          return { cart: [...state.cart, item] };
+        });
+      },
+      updateCartItemQuantity: (productSku: string, quantity: number) => {
+        if (quantity <= 0) {
+          get().removeFromCart(productSku);
+          return;
+        }
+        set((state) => ({
+          cart: state.cart.map(item =>
+            item.product_sku === productSku
+              ? { ...item, quantity, total_price: quantity * item.unit_price - (item.discount_amount || 0) }
+              : item
+          )
+        }));
+      },
+      removeFromCart: (productSku: string) => {
+        set((state) => ({
+          cart: state.cart.filter(item => item.product_sku !== productSku)
+        }));
+      },
+      clearCart: () => {
+        set({ cart: [] });
+      }
+    }),
+    {
+      name: 'b2b-cart-storage',
+    }
+  )
+);
+
 export const useB2BOrders = (storeId: number | undefined, ownerEmail?: string, storeProfile?: any, userEmail?: string) => {
   const [orders, setOrders] = useState<B2BOrder[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cart, setCart] = useState<CartItem[]>([]);
+  
+  // Usar el store de Zustand para el carrito
+  const { cart, addToCart: addToCartStore, updateCartItemQuantity: updateCartItemQuantityStore, removeFromCart: removeFromCartStore, clearCart: clearCartStore } = useB2BCartStore();
 
   // Obtener todos los pedidos B2B de la tienda
   const fetchOrders = useCallback(async () => {
@@ -214,17 +274,8 @@ export const useB2BOrders = (storeId: number | undefined, ownerEmail?: string, s
         try {
           const transformedOrderData = transformB2BOrderForEmail(newOrder, storeProfile, userEmail);
 
-          console.log('Datos del storeProfile:', storeProfile);
-          console.log('Email del usuario:', userEmail);
-          console.log('Datos transformados para email:', {
-            customer_name: transformedOrderData.customer_name,
-            customer_email: transformedOrderData.customer_email,
-            customer_phone: transformedOrderData.customer_phone,
-            order_number: transformedOrderData.order_number
-          });
           
           await emailNotificationService.sendB2BEmailNotification(transformedOrderData, 'dev@larefa.com');
-          console.log('Notificación B2B enviada exitosamente');
         } catch (emailError) {
           console.error('Error al enviar notificación B2B por email:', emailError);
           // No lanzamos el error para no interrumpir el flujo del pedido
@@ -235,7 +286,7 @@ export const useB2BOrders = (storeId: number | undefined, ownerEmail?: string, s
       if (newOrder) {
         setOrders(prev => [newOrder, ...prev]);
         // Limpiar el carrito después de crear el pedido
-        setCart([]);
+        clearCartStore();
       }
 
       return newOrder;
@@ -439,41 +490,11 @@ export const useB2BOrders = (storeId: number | undefined, ownerEmail?: string, s
     }
   }, [storeId]);
 
-  // Funciones del carrito
-  const addToCart = useCallback((item: CartItem) => {
-    setCart(prev => {
-      const existingItem = prev.find(cartItem => cartItem.product_sku === item.product_sku);
-      if (existingItem) {
-        return prev.map(cartItem =>
-          cartItem.product_sku === item.product_sku
-            ? { ...cartItem, quantity: cartItem.quantity + item.quantity }
-            : cartItem
-        );
-      }
-      return [...prev, item];
-    });
-  }, []);
-
-  const updateCartItemQuantity = useCallback((productSku: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productSku);
-      return;
-    }
-    
-    setCart(prev => prev.map(item =>
-      item.product_sku === productSku
-        ? { ...item, quantity, total_price: quantity * item.unit_price - (item.discount_amount || 0) }
-        : item
-    ));
-  }, []);
-
-  const removeFromCart = useCallback((productSku: string) => {
-    setCart(prev => prev.filter(item => item.product_sku !== productSku));
-  }, []);
-
-  const clearCart = useCallback(() => {
-    setCart([]);
-  }, []);
+  // Funciones del carrito - usar las del store de Zustand
+  const addToCart = addToCartStore;
+  const updateCartItemQuantity = updateCartItemQuantityStore;
+  const removeFromCart = removeFromCartStore;
+  const clearCart = clearCartStore;
 
   // Calcular totales del carrito
   const cartTotals = useCallback(() => {

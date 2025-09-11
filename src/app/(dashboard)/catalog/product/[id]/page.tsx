@@ -5,13 +5,14 @@ import { useEffect, useState } from 'react';
 import { ProductDetailPage } from '../../_components/ProductDetailPage';
 import { Product } from '@/types/ecomerce';
 import { useProducts } from '@/hooks/Products/useProducts';
+import { useCartStore } from '@/stores/cartStore';
 
 export default function DashboardProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const { products } = useProducts();
-
+    const { addItem } = useCartStore();
     useEffect(() => {
         const loadProduct = async () => {
             const resolvedParams = await params;

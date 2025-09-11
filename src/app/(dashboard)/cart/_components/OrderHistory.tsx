@@ -130,14 +130,14 @@ export const OrderHistory = ({
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 lg:space-y-6">
             {/* Header con búsqueda */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Historial de Pedidos</CardTitle>
+                    <CardTitle className="text-base lg:text-lg">Historial de Pedidos</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex gap-4">
+                    <div className="flex gap-3 lg:gap-4">
                         <div className="flex-1">
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -145,7 +145,7 @@ export const OrderHistory = ({
                                     placeholder="Buscar por número de pedido, contacto o PO..."
                                     value={searchTerm}
                                     onChange={(e) => onSearch(e.target.value)}
-                                    className="pl-10"
+                                    className="pl-10 text-sm lg:text-base"
                                 />
                             </div>
                         </div>
@@ -167,54 +167,56 @@ export const OrderHistory = ({
                 <Card>
                     <CardContent className="pt-6">
                         <div className="text-center">
-                            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                            <Package className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
                                 {searchTerm ? 'No se encontraron pedidos' : 'No hay pedidos'}
                             </h3>
-                            <p className="text-gray-500">
+                            <p className="text-sm sm:text-base text-gray-500">
                                 {searchTerm ? 'Intenta ajustar los términos de búsqueda' : 'Los pedidos aparecerán aquí cuando se creen'}
                             </p>
                         </div>
                     </CardContent>
                 </Card>
             ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 lg:space-y-4">
                     {filteredOrders.map((order) => (
                         <Card key={order.id} className="hover:shadow-md transition-shadow">
-                            <CardContent className="p-6">
-                                <div className="flex items-start justify-between">
+                            <CardContent className="p-4 lg:p-6">
+                                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                                     <div className="flex-1">
-                                        <div className="flex items-center gap-4 mb-3">
-                                            <h3 className="text-lg font-semibold">#{order.order_number}</h3>
-                                            <Badge className={getStatusColor(order.order_status)}>
-                                                {order.order_status.toUpperCase()}
-                                            </Badge>
-                                            <Badge className={getPaymentStatusColor(order.payment_status)}>
-                                                {order.payment_status.toUpperCase()}
-                                            </Badge>
-                                            <Badge className={getPriorityColor(order.priority_level)}>
-                                                {getPriorityText(order.priority_level)}
-                                            </Badge>
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3">
+                                            <h3 className="text-base lg:text-lg font-semibold">#{order.order_number}</h3>
+                                            <div className="flex flex-wrap gap-2">
+                                                <Badge className={`${getStatusColor(order.order_status)} text-xs`}>
+                                                    {order.order_status.toUpperCase()}
+                                                </Badge>
+                                                <Badge className={`${getPaymentStatusColor(order.payment_status)} text-xs`}>
+                                                    {order.payment_status.toUpperCase()}
+                                                </Badge>
+                                                <Badge className={`${getPriorityColor(order.priority_level)} text-xs`}>
+                                                    {getPriorityText(order.priority_level)}
+                                                </Badge>
+                                            </div>
                                         </div>
                                         
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <Calendar className="w-4 h-4" />
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 mb-4">
+                                            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+                                                <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                                                 <span>{new Date(order.created_at!).toLocaleDateString()}</span>
                                             </div>
                                             
-                                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <MapPin className="w-4 h-4" />
-                                                <span>{order.delivery_city}, {order.delivery_state}</span>
+                                            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+                                                <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                <span className="truncate">{order.delivery_city}, {order.delivery_state}</span>
                                             </div>
                                             
-                                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <CreditCard className="w-4 h-4" />
+                                            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+                                                <CreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
                                                 <span>${order.total_amount.toFixed(2)} {order.currency}</span>
                                             </div>
                                         </div>
 
-                                        <div className="text-sm text-gray-600">
+                                        <div className="text-xs sm:text-sm text-gray-600 space-y-1">
                                             <p><strong>Contacto:</strong> {order.delivery_contact_name || 'No especificado'}</p>
                                             {order.purchase_order_number && (
                                                 <p><strong>PO:</strong> {order.purchase_order_number}</p>
@@ -223,14 +225,15 @@ export const OrderHistory = ({
                                         </div>
                                     </div>
                                     
-                                    <div className="flex gap-2 ml-4">
+                                    <div className="flex gap-2 lg:ml-4">
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             onClick={() => onViewOrder(order)}
+                                            className="flex-1 sm:flex-none"
                                         >
-                                            <Eye className="w-4 h-4 mr-2" />
-                                            Ver
+                                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                            <span className="text-xs sm:text-sm">Ver</span>
                                         </Button>
                                        {/** <Button
                                             variant="outline"
